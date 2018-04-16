@@ -1,0 +1,4 @@
+# A very simple wrapper for convenient hyperparameter optimization
+hyperas
+# Known issue: https://github.com/maxpumperla/hyperas/issues/125
+networkx==1.11
