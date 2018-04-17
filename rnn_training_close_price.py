@@ -97,7 +97,7 @@ regressor.add(Dense(units = 1))
 regressor.add(Activation(activation))
 
 # Compiling the RNN
-regressor.compile(optimizer = optimizer, loss = 'mean_squared_error')
+regressor.compile(optimizer=optimizer, metrics=['accuracy'], loss='mean_squared_error')
 
 # Fitting the RNN to the Training set
 regressor.fit(X_train, y_train, epochs = 100, batch_size = 32)
