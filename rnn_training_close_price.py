@@ -18,7 +18,7 @@ unique_stock_codes = dataset_stock_history.代碼.unique()
 # Extracting the training dataset for 元大台灣50
 testing_set = True
 dataset_etf_history = dataset_etf_history.loc[dataset_etf_history['代碼'] == 50]
-dataset_etf_adjusted_history = dataset_etf_adjusted_history.loc[dataset_etf_adjusted_history['代碼'] == 50]
+# dataset_etf_adjusted_history = dataset_etf_adjusted_history.loc[dataset_etf_adjusted_history['代碼'] == 50]
 
 if testing_set is True:
     # reserve the last 5 working date
@@ -62,6 +62,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
 from keras.layers import Dropout
+from keras.layers import Activation
 
 # Initialising the RNN
 optimizer = 'rmsprop'     # Recommended optimizer for RNN
