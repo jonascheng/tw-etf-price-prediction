@@ -39,7 +39,8 @@ def model(X_train, y_train, X_test, y_test):
     from keras.layers import Dense
     from keras.layers import LSTM
     from keras.layers import Dropout
-    from keras.layers import Activation    
+    from keras.layers import Activation
+    from keras.callbacks import EarlyStopping
     # Importing the hyperopt libraries and packages
     from hyperopt import STATUS_OK
     from hyperas.distributions import choice, uniform, conditional
@@ -65,6 +66,12 @@ def model(X_train, y_train, X_test, y_test):
         metrics=['accuracy'],
         loss='mean_squared_error')
     
+    # Defining early stopping criteria
+    earlyStopping = EarlyStopping(monitor='val_acc', min_delta=0.00001, patience=25, verbose=1, mode='max')
+
+    # Collecting callback list
+    callbacks_list = [earlyStopping]
+
     # Fitting the RNN to the Training set
     nb_epoch = {{choice([1, 10, 100])}}
     batch_size = {{choice([1, 32])}}
@@ -73,12 +80,13 @@ def model(X_train, y_train, X_test, y_test):
         y_train, 
         epochs=nb_epoch, 
         batch_size=batch_size, 
-        validation_data=(X_test, y_test))
+        validation_data=(X_test, y_test),
+        callbacks=callbacks_list)
 
     # Evaluating the model    
     score, acc = regressor.evaluate(X_test, y_test)
     print('Test score: {}, accuracy: {}'.format(score, acc))
-    
+
     return {'loss': -acc, 'status': STATUS_OK, 'model': regressor}
 
 best_run, best_model = optim.minimize(model=model, data=data, algo=tpe.suggest, max_evals=5, trials=Trials())
@@ -89,4 +97,3 @@ print("Best performing model chosen hyper-parameters:")
 print(best_run)
 
 best_model.save('rnn_etf_50.h5')
-
