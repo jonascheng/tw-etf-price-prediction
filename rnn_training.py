@@ -18,6 +18,7 @@ won't reload data for each evaluation run.
 '''
 def data():
     from dataloader import DataLoader
+
     loader = DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv', normalize=True)
     X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=240)
     return X_train, y_train, X_test, y_test
@@ -35,39 +36,19 @@ The last one is optional, though recommended, namely:
 '''
 def model(X_train, y_train, X_test, y_test):
     # Importing the Keras libraries and packages
-    from keras.models import Sequential
-    from keras.layers import Dense
-    from keras.layers import LSTM
-    from keras.layers import Dropout
-    from keras.layers import Activation
     from keras.callbacks import EarlyStopping
     # Importing the hyperopt libraries and packages
     from hyperopt import STATUS_OK
     from hyperas.distributions import choice, uniform, conditional
 
-    # Initialising the RNN
-    regressor = Sequential()
-    
-    # Adding the first LSTM layer
+    from model import Model
+
     output_dim = {{choice([50, 60, 90])}}
-    regressor.add(LSTM(units=output_dim, return_sequences=False, input_shape=(X_train.shape[1], 1)))
-    
-    # Adding Dense layer to aggregate the data from the prediction vector into a single value
-    regressor.add(Dense(units=1))
-    
-    # Adding Linear Activation function
-    activation = 'linear'
-    regressor.add(Activation(activation))
-    
-    # Compiling the RNN
     optimizer = {{choice(['rmsprop', 'adam', 'sgd'])}}
-    regressor.compile(
-        optimizer=optimizer,
-        metrics=['accuracy'],
-        loss='mean_squared_error')
+    regressor = Model().rnn(input_shape=(X_train.shape[1], 1), output_dim=output_dim, optimizer=optimizer)
     
     # Defining early stopping criteria
-    earlyStopping = EarlyStopping(monitor='val_acc', min_delta=0.00001, patience=25, verbose=1, mode='max')
+    earlyStopping = EarlyStopping(monitor='val_acc', min_delta=0.00001, patience=5, verbose=1, mode='max')
 
     # Collecting callback list
     callbacks_list = [earlyStopping]
