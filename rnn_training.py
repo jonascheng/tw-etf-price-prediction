@@ -19,7 +19,7 @@ won't reload data for each evaluation run.
 def data():
     from dataloader import DataLoader
     loader = DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv', normalize=True)
-    X_train, y_train, X_test, y_test = loader.data(50)
+    X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=240)
     return X_train, y_train, X_test, y_test
 
 

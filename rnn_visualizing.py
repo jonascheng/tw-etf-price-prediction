@@ -8,7 +8,7 @@ from visualizer import Visualizer
 
 loader = DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv', normalize=True)
 
-X_train, y_train, X_test, y_test = loader.data_last_5_for_test(50)
+X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=240)
 X_ori_train, y_ori_train, X_ori_test, y_ori_test = loader.ori_data()
 
 regressor = load_model('rnn_etf_50.h5')

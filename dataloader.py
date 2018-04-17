@@ -30,24 +30,24 @@ class DataLoader():
             window_data = normalized_data
         return window_data
 
-    def __train_test_split(self, Xy, last_5=True):
+    def __train_test_split(self, Xy, ndays):
         # Spliting dataset into training and testing sets    
-        if last_5 is True:
+        if ndays > 0:
             # Historical price for regression
             X = Xy[:, :-1]
             # Target price for regression
             y = Xy[:, -1:]
             # Select the last 5 working date for testing and the others for training.
-            X_train = X[:-5, :]
-            y_train = y[:-5, :]
-            X_test = X[-5:, :]
-            y_test = y[-5:, :]
+            X_train = X[:-ndays, :]
+            y_train = y[:-ndays, :]
+            X_test = X[-ndays:, :]
+            y_test = y[-ndays:, :]
         else:
             X = Xy[:, :-1]
             y = Xy[:, -1:]
-            # Select 10% of the data for testing and 90% for training.
+            # Select 20% of the data for testing and 80% for training.
             # Shuffle the data in order to train in random order.
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, shuffle=True, random_state=0) 
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True, random_state=0) 
 
         # Reshape the inputs from 1 dimenstion to 3 dimension
         # X_train.shape[0]: batch_size which is number of observations
@@ -58,7 +58,7 @@ class DataLoader():
 
         return X_train, X_test, y_train, y_test
 
-    def __data(self, stock_id, last_5=True):
+    def __data(self, stock_id, ndays):
         # Extracting/Filtering the training dataset by stock_id
         dataset = self.history.loc[self.history['代碼'] == stock_id]
         # Taking 收盤價 as a predictor
@@ -74,16 +74,16 @@ class DataLoader():
         ori_Xy = np.array(ori_Xy)
         Xy = np.array(Xy)
         # Spliting dataset into training and testing sets
-        self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = self.__train_test_split(ori_Xy, last_5)
-        X_train, X_test, y_train, y_test = self.__train_test_split(Xy, last_5)
+        self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = self.__train_test_split(ori_Xy, ndays)
+        X_train, X_test, y_train, y_test = self.__train_test_split(Xy, ndays)
 
         return X_train, y_train, X_test, y_test
 
-    def data_last_5_for_test(self, stock_id):
-        return self.__data(stock_id, last_5=True)
+    def data_last_ndays_for_test(self, stock_id, ndays):
+        return self.__data(stock_id, ndays)
 
     def data(self, stock_id):
-        return self.__data(stock_id, last_5=False)
+        return self.__data(stock_id, ndays=0)
 
     def ori_data(self):
         return self.X_ori_train, self.y_ori_train, self.X_ori_test, self.y_ori_test
