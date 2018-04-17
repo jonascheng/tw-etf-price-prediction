@@ -48,7 +48,7 @@ def model(X_train, y_train, X_test, y_test):
     regressor = Sequential()
     
     # Adding the first LSTM layer
-    output_dim = {{choice([50, 100])}}
+    output_dim = {{choice([50, 60, 90])}}
     regressor.add(LSTM(units=output_dim, return_sequences=False, input_shape=(X_train.shape[1], 1)))
     
     # Adding Dense layer to aggregate the data from the prediction vector into a single value
@@ -66,8 +66,8 @@ def model(X_train, y_train, X_test, y_test):
         loss='mean_squared_error')
     
     # Fitting the RNN to the Training set
-    nb_epoch = {{choice([1, 2])}}
-    batch_size = {{choice([1, 2])}}
+    nb_epoch = {{choice([1, 10, 100])}}
+    batch_size = {{choice([1, 32])}}
     regressor.fit(
         X_train, 
         y_train, 
