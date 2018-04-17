@@ -109,7 +109,7 @@ regressor.add(Dense(units = 1))
 regressor.add(Activation(activation))
 
 # Compiling the RNN
-regressor.compile(optimizer = optimizer, loss = 'mean_squared_error')
+regressor.compile(optimizer=optimizer, metrics=['accuracy'], loss='mean_squared_error')
 
 # Fitting the RNN to the Training set
 regressor.fit(X_train, y_train, epochs=nb_epoch, batch_size=batch_size, validation_split=0.05)
@@ -118,9 +118,9 @@ regressor.fit(X_train, y_train, epochs=nb_epoch, batch_size=batch_size, validati
 import math
 
 mse_score = regressor.evaluate(X_test, y_test)
-rmse_score = math.sqrt(mse_score)
+#rmse_score = math.sqrt(mse_score)
 print('Mean squared error (MSE): {}'.format(mse_score))
-print('Root Mean squared error (RMSE): {}'.format(mse_score))
+#print('Root Mean squared error (RMSE): {}'.format(mse_score))
 
 # Part 4 - Making the predictions and visualising the results
 
