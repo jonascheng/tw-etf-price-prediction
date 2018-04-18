@@ -17,9 +17,11 @@ used in model function below. This function is separated from model() so that hy
 won't reload data for each evaluation run.
 '''
 def data():
-    from dataloader import DataLoader
+    import dataloader
 
-    loader = DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv', normalize=True)
+    # Normalized
+    # loader = dataloader.DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv')
+    loader = dataloader.DataLoader2('TBrain_Round2_DataSet_20180331/tetfp.csv')
     X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=240)
     return X_train, y_train, X_test, y_test
 
