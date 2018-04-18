@@ -48,7 +48,7 @@ def model(X_train, y_train, X_test, y_test):
     regressor = Model().rnn(input_shape=(X_train.shape[1], 1), output_dim=output_dim, optimizer=optimizer)
     
     # Defining early stopping criteria
-    earlyStopping = EarlyStopping(monitor='val_acc', min_delta=0.00001, patience=5, verbose=1, mode='max')
+    earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')
 
     # Collecting callback list
     callbacks_list = [earlyStopping]
@@ -65,10 +65,10 @@ def model(X_train, y_train, X_test, y_test):
         callbacks=callbacks_list)
 
     # Evaluating the model    
-    score, acc = regressor.evaluate(X_test, y_test)
-    print('Test score: {}, accuracy: {}'.format(score, acc))
+    score, mse = regressor.evaluate(X_test, y_test)
+    print('Test score: {}, mse: {}'.format(score, mse))
 
-    return {'loss': -acc, 'status': STATUS_OK, 'model': regressor}
+    return {'loss': mse, 'status': STATUS_OK, 'model': regressor}
 
 best_run, best_model = optim.minimize(model=model, data=data, algo=tpe.suggest, max_evals=5, trials=Trials())
 _, _, X_test, y_test = data()

@@ -6,6 +6,7 @@ from keras.layers import Dense
 from keras.layers import LSTM
 from keras.layers import Dropout
 from keras.layers import Activation
+from keras import metrics
 
 
 class Model():
@@ -29,7 +30,7 @@ class Model():
         # Compiling the RNN
         regressor.compile(
             optimizer=optimizer,
-            metrics=['accuracy'],
+            metrics=[metrics.mse],
             loss='mean_squared_error')
 
         return regressor

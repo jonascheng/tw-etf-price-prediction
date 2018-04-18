@@ -58,18 +58,34 @@ class DataLoader():
 
         return X_train, X_test, y_train, y_test
 
+    def __series_to_supervised(self, series, n_in, n_out=1):
+        """
+        Frame a time series as a supervised learning dataset.
+        Arguments:
+            series: Sequence of observations as a NumPy array.
+            n_in: Number of observations as input (X).
+            n_out: Number of observations as output (y).
+        Returns:
+            NumPy array of series for supervised learning.
+        """
+        # Composing time sequence dataset with timesteps + target
+        supervised = []
+        for i in range(n_in, len(series) - n_out + 1):
+            supervised.append(series[i - n_in:i + n_out, 0])
+        return supervised
+
     def __data(self, stock_id, ndays):
         # Extracting/Filtering the training dataset by stock_id
         dataset = self.history.loc[self.history['代碼'] == stock_id]
         # Taking 收盤價 as a predictor
         dataset = dataset.iloc[:, 6:7].values
-        # Composing time sequence dataset with timesteps + target
-        timesequence = []
-        for i in range(self.look_back, len(dataset)):
-            timesequence.append(dataset[i - self.look_back:i + 1, 0])
+        
+        # Transforming time series dataset into supervised dataset
+        supervised = self.__series_to_supervised(dataset, self.look_back)
+
         # Normalize dataset if needed
-        ori_Xy = copy.deepcopy(timesequence)
-        Xy = self.__normalize_windows(timesequence)
+        ori_Xy = copy.deepcopy(supervised)
+        Xy = self.__normalize_windows(supervised)
         # Converting array of list to numpy array
         ori_Xy = np.array(ori_Xy)
         Xy = np.array(Xy)
