@@ -20,8 +20,8 @@ def data():
     import dataloader
 
     # Normalized
-    # loader = dataloader.DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv')
-    loader = dataloader.DataLoader2('TBrain_Round2_DataSet_20180331/tetfp.csv')
+    loader = dataloader.DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv')
+    # loader = dataloader.DataLoader2('TBrain_Round2_DataSet_20180331/tetfp.csv')
     X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=240)
     return X_train, y_train, X_test, y_test
 
@@ -45,9 +45,14 @@ def model(X_train, y_train, X_test, y_test):
 
     from model import Model
 
+    layers= {{choice([1, 2, 3, 4])}}
     output_dim = {{choice([50, 60, 90])}}
     optimizer = {{choice(['rmsprop', 'adam', 'sgd'])}}
-    regressor = Model().rnn(input_shape=(X_train.shape[1], 1), output_dim=output_dim, optimizer=optimizer)
+    regressor = Model().rnn(
+        input_shape=(X_train.shape[1], 1), 
+        layers=layers, 
+        output_dim=output_dim, 
+        optimizer=optimizer)
     
     # Defining early stopping criteria
     earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')

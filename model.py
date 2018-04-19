@@ -13,12 +13,25 @@ class Model():
     def __init__(self):
         pass
 
-    def rnn(self, input_shape, output_dim, optimizer):
+    def rnn(self, input_shape, layers, output_dim, optimizer):
         # Initialising the RNN
         regressor = Sequential()
 
         # Adding the first LSTM layer
-        regressor.add(LSTM(units=output_dim, return_sequences=False, input_shape=input_shape))
+        print('Adding the first LSTM layers')
+        return_sequences = False if layers == 1 else True
+        regressor.add(
+            LSTM(units=output_dim,  # Positive integer, dimensionality of the output space.
+            return_sequences=return_sequences, # # Boolean. Whether to return the last output in the output sequence, or the full sequence.
+            input_shape=input_shape))
+
+        # Adding additional LSTM layers
+        for i in range(layers-1, 0, -1):
+            print('Adding additional LSTM layers {}'.format(i))
+            return_sequences = False if i == 1 else True            
+            regressor.add(
+                LSTM(units=output_dim, 
+                return_sequences=return_sequences))
 
         # Adding Dense layer to aggregate the data from the prediction vector into a single value
         regressor.add(Dense(units=1))
