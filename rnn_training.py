@@ -21,7 +21,6 @@ def data():
 
     # Normalized
     loader = dataloader.DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv')
-    # loader = dataloader.DataLoader2('TBrain_Round2_DataSet_20180331/tetfp.csv')
     X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=240)
     return X_train, y_train, X_test, y_test
 
@@ -43,16 +42,18 @@ def model(X_train, y_train, X_test, y_test):
     from hyperopt import STATUS_OK
     from hyperas.distributions import choice, uniform, conditional
 
-    from model import Model
+    from model import create_model
 
-    layers= {{choice([1, 2, 3, 4])}}
-    output_dim = {{choice([50, 60, 90])}}
+    layers= {{choice([1, 2, 3])}}
+    output_dim = {{choice([1, 5, 50, 60, 90])}}
     optimizer = {{choice(['rmsprop', 'adam', 'sgd'])}}
-    regressor = Model().rnn(
+    dropout = {{uniform(0, 1)}}
+    regressor = create_model(
         input_shape=(X_train.shape[1], 1), 
         layers=layers, 
         output_dim=output_dim, 
-        optimizer=optimizer)
+        optimizer=optimizer,
+        dropout=dropout)
     
     # Defining early stopping criteria
     earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')

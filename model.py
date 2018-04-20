@@ -6,48 +6,54 @@ from keras.layers import Dense
 from keras.layers import LSTM
 from keras.layers import Dropout
 from keras.layers import Activation
+from keras.layers import TimeDistributed
 from keras import metrics
 
 
-class Model():
-    def __init__(self):
-        pass
+def create_model(input_shape, layers, output_dim, optimizer, dropout=0):
+    print('Creating model with input_shape {}, layers {}, output_dim {}, optimizer {}, dropout {}'.format(
+        input_shape, 
+        layers, 
+        output_dim, 
+        optimizer,
+        dropout))
 
-    def rnn(self, input_shape, layers, output_dim, optimizer):
-        dropout = 0.2
+    # Initialising the RNN
+    regressor = Sequential()
 
-        # Initialising the RNN
-        regressor = Sequential()
-
-        # Adding the first LSTM layer
-        print('Adding the first LSTM layers')
-        return_sequences = False if layers == 1 else True
-        regressor.add(
-            LSTM(units=output_dim,              # Positive integer, dimensionality of the output space.
-            return_sequences=return_sequences,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
-            input_shape=input_shape))
+    # Adding the first LSTM layer
+    print('Adding the first LSTM layers')
+    return_sequences = False if layers == 1 else True
+    regressor.add(
+        LSTM(units=output_dim,              # Positive integer, dimensionality of the output space.
+        return_sequences=return_sequences,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
+        input_shape=input_shape))
+    if dropout > 0:
         regressor.add(Dropout(dropout))
 
-        # Adding additional LSTM layers
-        for i in range(layers-1, 0, -1):
-            print('Adding additional LSTM layers {}'.format(i))
-            return_sequences = False if i == 1 else True            
-            regressor.add(
-                LSTM(units=output_dim, 
-                return_sequences=return_sequences))
+    # Adding additional LSTM layers
+    for i in range(layers-1, 0, -1):
+        print('Adding additional LSTM layers {}'.format(i))
+        return_sequences = False if i == 1 else True
+        regressor.add(
+            LSTM(units=output_dim, 
+            return_sequences=return_sequences))
+        if dropout > 0:
             regressor.add(Dropout(dropout))
 
-        # Adding Dense layer to aggregate the data from the prediction vector into a single value
-        regressor.add(Dense(units=1))
+    # Adding Dense layer to aggregate the data from the prediction vector into a single value
+    regressor.add(Dense(units=1))
+    # regressor.add(TimeDistributed(Dense(units=1)))
 
-        # Adding Linear Activation function
-        activation = 'linear'
-        regressor.add(Activation(activation))
+    # Adding Linear Activation function
+    activation = 'linear'
+    regressor.add(Activation(activation))
 
-        # Compiling the RNN
-        regressor.compile(
-            optimizer=optimizer,
-            metrics=[metrics.mse],
-            loss='mean_squared_error')
+    # Compiling the RNN
+    regressor.compile(
+        optimizer=optimizer,
+        metrics=[metrics.mse],
+        loss='mean_squared_error')
 
-        return regressor
+    print(regressor.summary())
+    return regressor

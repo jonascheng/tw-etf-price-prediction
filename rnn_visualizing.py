@@ -3,11 +3,10 @@
 # Importing the libraries
 from keras.models import load_model
 
-from dataloader import DataLoader, DataLoader2
+from dataloader import DataLoader
 from visualizer import Visualizer
 
 loader = DataLoader('TBrain_Round2_DataSet_20180331/tetfp.csv')
-#loader = DataLoader2('TBrain_Round2_DataSet_20180331/tetfp.csv')
 loader.data_last_ndays_for_test(50, ndays=5)
 X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=10)
 X_ori_train, y_ori_train, X_ori_test, y_ori_test = loader.ori_data()
