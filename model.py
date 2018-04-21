@@ -18,6 +18,8 @@ def create_model(input_shape, layers, output_dim, optimizer, dropout=0):
         optimizer,
         dropout))
 
+    stateful = True
+
     # Initialising the RNN
     regressor = Sequential()
 
@@ -27,7 +29,8 @@ def create_model(input_shape, layers, output_dim, optimizer, dropout=0):
     regressor.add(
         LSTM(units=output_dim,              # Positive integer, dimensionality of the output space.
         return_sequences=return_sequences,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
-        input_shape=input_shape))
+        input_shape=input_shape,
+        stateful=stateful))
     if dropout > 0:
         regressor.add(Dropout(dropout))
 
@@ -37,7 +40,8 @@ def create_model(input_shape, layers, output_dim, optimizer, dropout=0):
         return_sequences = False if i == 1 else True
         regressor.add(
             LSTM(units=output_dim, 
-            return_sequences=return_sequences))
+            return_sequences=return_sequences,
+            stateful=stateful))
         if dropout > 0:
             regressor.add(Dropout(dropout))
 

@@ -40,14 +40,18 @@ def model(X_train, y_train, X_test, y_test):
     from keras.callbacks import EarlyStopping
     # Importing the hyperopt libraries and packages
     from hyperopt import STATUS_OK
-    from hyperas.distributions import choice, uniform, conditional
+    from hyperas.distributions import choice, uniform
 
     from model import create_model
 
+    nb_epoch = {{choice([1, 10, 100])}}
+    batch_size = {{choice([1, 32])}}
+
     layers= {{choice([1, 2, 3])}}
-    output_dim = {{choice([1, 5, 50, 60, 90])}}
+    output_dim = {{choice([50, 60, 90])}}
     optimizer = {{choice(['rmsprop', 'adam', 'sgd'])}}
     dropout = {{uniform(0, 1)}}
+
     regressor = create_model(
         input_shape=(X_train.shape[1], 1), 
         layers=layers, 
@@ -56,14 +60,12 @@ def model(X_train, y_train, X_test, y_test):
         dropout=dropout)
     
     # Defining early stopping criteria
-    earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')
+    earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.000001, patience=5, verbose=1, mode='min')
 
     # Collecting callback list
     callbacks_list = [earlyStopping]
 
     # Fitting the RNN to the Training set
-    nb_epoch = {{choice([1, 10, 100])}}
-    batch_size = {{choice([1, 32])}}
     regressor.fit(
         X_train, 
         y_train, 
