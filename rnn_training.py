@@ -17,11 +17,13 @@ def data():
     used in model function below. This function is separated from model() so that hyperopt
     won't reload data for each evaluation run.
     """
+    # workaround to dynamically change stock_id
+    with open('.processing_stock_id', 'r') as file:
+        stock_id = file.read()
+    print('Loading dataset for {}'.format(stock_id))
     import dataloader
-
-    # Normalized
     loader = dataloader.DataLoader()
-    X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(50, ndays=240)
+    X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=240)
     return X_train, y_train, X_test, y_test
 
 
@@ -61,7 +63,7 @@ def model(X_train, y_train, X_test, y_test):
         dropout=dropout)
     
     # Defining early stopping criteria
-    earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.0000001, patience=10, verbose=1, mode='min')
+    earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.000001, patience=10, verbose=1, mode='min')
 
     # Collecting callback list
     callbacks_list = [earlyStopping]
@@ -81,11 +83,25 @@ def model(X_train, y_train, X_test, y_test):
 
     return {'loss': mse, 'status': STATUS_OK, 'model': regressor}
 
-best_run, best_model = optim.minimize(model=model, data=data, algo=tpe.suggest, max_evals=5, trials=Trials())
-_, _, X_test, y_test = data()
-print('Evalutation of best performing model:')
-print(best_model.evaluate(X_test, y_test))
-print("Best performing model chosen hyper-parameters:")
-print(best_run)
 
-best_model.save('rnn_etf_50.h5')
+def start_training(stock_id, trained_model):
+    # workaround to dynamically change stock_id
+    with open('.processing_stock_id', 'w') as file:
+        file.write(str(stock_id))
+    best_run, best_model = optim.minimize(
+        model=model, 
+        data=data, 
+        algo=tpe.suggest, 
+        max_evals=5, 
+        trials=Trials())
+    _, _, X_test, y_test = data()
+    print('Evalutation of best performing model for {}:'.format(stock_id))
+    print(best_model.evaluate(X_test, y_test))
+    print('Best performing model for {} chosen hyper-parameters:'.format(stock_id))
+    print(best_run)
+    best_model.save(trained_model)
+
+
+if __name__ == '__main__':
+    stock_id = 51
+    start_training(stock_id, 'rnn_etf_{}.h5'.format(stock_id))

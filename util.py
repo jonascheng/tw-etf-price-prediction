@@ -21,6 +21,10 @@ def load_csv(filepath):
     return pd.read_csv(filepath, encoding='big5-hkscs')
 
 
+def get_model_name(stock_id):
+    return 'etf_{}_model.h'.format(stock_id)
+
+
 def query_close_price(dataset, stock_id):
     """
     Query close stock price by stock id.
