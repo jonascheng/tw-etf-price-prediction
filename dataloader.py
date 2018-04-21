@@ -8,28 +8,29 @@ import pandas as pd
 from abc import ABCMeta
 from sklearn.preprocessing import MinMaxScaler
 
-from util import load_csv, query_close_price, series_to_supervised, normalize_windows, train_test_split
+from util import load_csv, query_close_price, series_to_supervised, normalize_windows, train_test_split, predict_split
 
 
 class DataLoaderBase(metaclass=ABCMeta):
     # Tuned params and variables
     # number of sequence data
     look_back = 50
-    
-    def __init__(self, filepath):
+    look_forward = 5
+
+    def __init__(self):
         # Importing the dataset
-        self.history = load_csv(filepath)
+        self.history = load_csv('TBrain_Round2_DataSet_20180331/tetfp.csv')
 
 
 class DataLoader(DataLoaderBase):
-    def __init__(self, filepath):
-        super(DataLoader, self).__init__(filepath)
+    def __init__(self):
+        super(DataLoader, self).__init__()
         
     def __data(self, stock_id, ndays):
         # Taking 收盤價 as a predictor
         dataset = query_close_price(self.history, stock_id)
         # Transforming time series dataset into supervised dataset
-        supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=1)
+        supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=self.look_forward)
         # Normalize dataset if needed
         ori_Xy = copy.deepcopy(supervised)
         Xy = normalize_windows(supervised)
@@ -41,10 +42,33 @@ class DataLoader(DataLoaderBase):
         # self.sc.fit(Xy.reshape(Xy.shape[0]*Xy.shape[1], 1))
         # Xy = self.sc.transform(Xy)
         # Spliting dataset into training and testing sets
-        self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=1)
-        X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=1)
+        self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=self.look_forward)
+        X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=self.look_forward)
 
         return X_train, y_train, X_test, y_test
+
+    def data_last_price(self, stock_id):
+        # Taking 收盤價 as a predictor
+        dataset = query_close_price(self.history, stock_id)
+        return dataset[-1:]
+
+    def data_for_prediction(self, stock_id):
+        # Taking 收盤價 as a predictor
+        dataset = query_close_price(self.history, stock_id)
+        # Transforming time series dataset into supervised dataset
+        supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=0)
+        # Normalize dataset if needed
+        ori_Xy = copy.deepcopy(supervised)
+        Xy = normalize_windows(supervised)
+        # Converting array of list to numpy array
+        ori_Xy = np.array(ori_Xy)
+        Xy = np.array(Xy)
+
+        # Spliting dataset into predicting sets
+        self.X_ori_test = predict_split(ori_Xy)
+        X_test = predict_split(Xy)
+
+        return X_test
 
     def data_last_ndays_for_test(self, stock_id, ndays):
         return self.__data(stock_id, ndays)

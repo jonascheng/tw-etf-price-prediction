@@ -33,6 +33,7 @@ def query_close_price(dataset, stock_id):
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
     # Extracting/Filtering the training dataset by stock_id    
     dataset = dataset.loc[dataset['代碼'] == stock_id]
+    assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 收盤價
     return dataset.iloc[:, 6:7].values
 
@@ -60,7 +61,7 @@ def plot_stock_price(series, first_ndays=0, last_ndays=0):
     plt.show()
 
 
-def series_to_supervised(series, n_in, n_out=1):
+def series_to_supervised(series, n_in, n_out):
     """
     Frame a time series as a supervised learning dataset.
     Arguments:
@@ -96,9 +97,30 @@ def normalize_windows(series):
     return df.values
 
 
+def predict_split(Xy):
+    """
+    Split supervised learning dataset into predicting sets
+    Arguments:
+        Xy: Two dimensions of sequence observations as a NumPy array.
+    """
+    assert type(Xy) is np.ndarray, 'unexpected type of Xy: {}'.format(type(Xy))
+    assert(Xy.shape[0] > 1)
+
+    # Historical price for prediction
+    X = Xy[-1:, :]
+
+    # Reshape the inputs from 1 dimenstion to 3 dimension
+    # X.shape[0]: batch_size which is number of observations
+    # X.shape[1]: timesteps which is look_back
+    # 1: input_dim which is number of predictors
+    X = np.reshape(X, (X.shape[0], X.shape[1], 1))
+
+    return X
+    
+    
 def train_test_split(Xy, num_forecasts, test_samples=0):
     """
-    Split supervised learning dataset into train and test sets
+    Split supervised learning dataset into training and testing sets
     Arguments:
         Xy: Two dimensions of sequence observations as a NumPy array.
         test_samples:
@@ -111,20 +133,20 @@ def train_test_split(Xy, num_forecasts, test_samples=0):
     assert type(Xy) is np.ndarray, 'unexpected type of Xy: {}'.format(type(Xy))
     assert(Xy.shape[0] > test_samples)
     assert(Xy.shape[1] > num_forecasts)
+
+    # Historical price for regression
+    X = Xy[:, :-num_forecasts]
+    # Target price for regression
+    y = Xy[:, -num_forecasts:]
+        
     # Spliting dataset into training and testing sets    
     if test_samples > 0:
-        # Historical price for regression
-        X = Xy[:, :-num_forecasts]
-        # Target price for regression
-        y = Xy[:, -num_forecasts:]
         # Select the last ndays working date for testing and the others for training.
         X_train = X[:-test_samples, :]
         y_train = y[:-test_samples, :]
         X_test = X[-test_samples:, :]
         y_test = y[-test_samples:, :]
     else:
-        X = Xy[:, :-num_forecasts]
-        y = Xy[:, -num_forecasts:]
         # Select 20% of the data for testing and 80% for training.
         # Shuffle the data in order to train in random order.
         X_train, X_test, y_train, y_test = sklearn_train_test_split(X, y, test_size=0.2, shuffle=True, random_state=0) 

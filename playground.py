@@ -53,18 +53,20 @@ supervised = series_to_supervised(dataset, n_in=50, n_out=5)
 # Visualising the stock price
 from util import plot_stock_price
 plot_stock_price(dataset, first_ndays=55)
-plot_stock_price(supervised[0].reshape(55, 1))
+plot_stock_price(supervised[0].transpose())
 
 ###########################################################
 # normalize_windows
+import copy
 from util import normalize_windows
+ori_Xy = copy.deepcopy(supervised)
 Xy = normalize_windows(supervised)
 
 ###########################################################
 # Visualising the stock price
 from util import plot_stock_price
 plot_stock_price(df2.values, first_ndays=55)
-plot_stock_price(Xy[0].reshape(55, 1))
+plot_stock_price(Xy[0].transpose())
 
 # + Feature Scaling
 from sklearn.preprocessing import MinMaxScaler
@@ -106,7 +108,8 @@ layers= 1
 output_dim = 50
 optimizer = 'adam'
 regressor = create_stateless_lstm_model(
-    input_shape=(X_train.shape[1], X_train.shape[2]),
+    X_train,
+    y_train,
     layers=layers,
     output_dim=output_dim, 
     optimizer=optimizer)
@@ -119,3 +122,10 @@ plt.xlabel('Time')
 plt.ylabel('ETF 0050 Stock Price')
 plt.legend()
 plt.show()
+
+###########################################################
+# Prediction submission
+###########################################################
+# predict_split
+from util import predict_split
+X = predict_split(Xy)

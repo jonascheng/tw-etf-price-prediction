@@ -10,15 +10,17 @@ from keras.layers import TimeDistributed
 from keras import metrics
 
 
-def create_stateless_lstm_model(input_shape, layers, output_dim, optimizer, dropout=0):
-    print('Creating model with input_shape {}, layers {}, output_dim {}, optimizer {}, dropout {}'.format(
-        input_shape, 
+def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
+    print('Creating model with layers {}, output_dim {}, optimizer {}, dropout {}'.format(
         layers, 
         output_dim, 
         optimizer,
         dropout))
 
     stateful = False
+    input_shape = (X.shape[1], 1)
+    output = y.shape[1]
+    print('input_shape {}, output {}'.format(input_shape, output))
 
     # Initialising the RNN
     regressor = Sequential()
@@ -46,7 +48,7 @@ def create_stateless_lstm_model(input_shape, layers, output_dim, optimizer, drop
             regressor.add(Dropout(dropout))
 
     # Adding Dense layer to aggregate the data from the prediction vector into a single value
-    regressor.add(Dense(units=1))
+    regressor.add(Dense(units=output))
     # regressor.add(TimeDistributed(Dense(units=1)))
 
     # Adding Linear Activation function
