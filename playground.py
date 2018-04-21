@@ -101,11 +101,11 @@ plot_stock_price(scaled_price[0].reshape(55, 1))
 
 ###########################################################
 # Creating model
-from model import create_model
+from model import create_stateless_lstm_model
 layers= 1
 output_dim = 50
 optimizer = 'adam'
-regressor = create_model(
+regressor = create_stateless_lstm_model(
     input_shape=(X_train.shape[1], X_train.shape[2]),
     layers=layers,
     output_dim=output_dim, 

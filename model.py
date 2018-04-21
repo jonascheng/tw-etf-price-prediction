@@ -10,7 +10,7 @@ from keras.layers import TimeDistributed
 from keras import metrics
 
 
-def create_model(input_shape, layers, output_dim, optimizer, dropout=0):
+def create_stateless_lstm_model(input_shape, layers, output_dim, optimizer, dropout=0):
     print('Creating model with input_shape {}, layers {}, output_dim {}, optimizer {}, dropout {}'.format(
         input_shape, 
         layers, 
@@ -18,7 +18,7 @@ def create_model(input_shape, layers, output_dim, optimizer, dropout=0):
         optimizer,
         dropout))
 
-    stateful = True
+    stateful = False
 
     # Initialising the RNN
     regressor = Sequential()

@@ -42,7 +42,7 @@ def model(X_train, y_train, X_test, y_test):
     from hyperopt import STATUS_OK
     from hyperas.distributions import choice, uniform
 
-    from model import create_model
+    from model import create_stateless_lstm_model
 
     nb_epoch = {{choice([1, 10, 100])}}
     batch_size = {{choice([1, 32])}}
@@ -52,7 +52,7 @@ def model(X_train, y_train, X_test, y_test):
     optimizer = {{choice(['rmsprop', 'adam', 'sgd'])}}
     dropout = {{uniform(0, 1)}}
 
-    regressor = create_model(
+    regressor = create_stateless_lstm_model(
         input_shape=(X_train.shape[1], 1), 
         layers=layers, 
         output_dim=output_dim, 
