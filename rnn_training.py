@@ -52,7 +52,7 @@ def model(X_train, y_train, X_test, y_test):
     layers = {{choice([1, 2, 3])}}
     output_dim = {{choice([50, 60, 90])}}
     optimizer = {{choice(['rmsprop', 'adam', 'sgd'])}}
-    dropout = {{choice([0, 0.2, 0.4])}}
+    dropout = {{choice([0, 0.2])}}
 
     regressor = create_stateless_lstm_model(
         X_train,
@@ -75,10 +75,11 @@ def model(X_train, y_train, X_test, y_test):
         epochs=nb_epoch, 
         batch_size=batch_size, 
         validation_data=(X_test, y_test),
-        callbacks=callbacks_list)
+        callbacks=callbacks_list,
+        shuffle=False)
 
     # Evaluating the model    
-    score, mse = regressor.evaluate(X_test, y_test)
+    score, mse = regressor.evaluate(X_test, y_test, batch_size=batch_size)
     print('Test score: {}, mse: {}'.format(score, mse))
 
     return {'loss': mse, 'status': STATUS_OK, 'model': regressor}
@@ -103,5 +104,5 @@ def start_training(stock_id, trained_model):
 
 
 if __name__ == '__main__':
-    stock_id = 51
+    stock_id = 50
     start_training(stock_id, 'rnn_etf_{}.h5'.format(stock_id))
