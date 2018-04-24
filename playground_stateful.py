@@ -66,7 +66,6 @@ from util import normalize_windows
 ori_Xy = copy.deepcopy(supervised)
 Xy = normalize_windows(supervised)
 
-
 ###########################################################
 # Visualising the stock price
 from util import plot_stock_price
@@ -191,10 +190,3 @@ plt.xlabel('Time')
 plt.ylabel('ETF Stock Price')
 plt.legend()
 plt.show()
-
-###########################################################
-# Prediction submission
-###########################################################
-# predict_split
-from util import predict_split
-X = predict_split(Xy)

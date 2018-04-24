@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# 1. Stateless LSTM
+# 2. Lookback 50 days and forecast 5 days
+# 3. Last 240 days for testing set
+# 2. Normalized
 """
 Spyder Editor
 
@@ -10,6 +14,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+stock_id = '0050'
+
 ###########################################################
 from util import load_csv
 filepath = 'TBrain_Round2_DataSet_20180331/tetfp.csv'
@@ -18,7 +24,7 @@ history = load_csv(filepath)
 # Extracting/Filtering the training dataset by stock_id
 # Taking 收盤價 as a predictor
 from util import query_close_price
-dataset = query_close_price(history, 50)
+dataset = query_close_price(history, int(stock_id))
 
 ###########################################################
 # Visualising the stock price
@@ -26,23 +32,23 @@ from util import plot_stock_price
 plot_stock_price(dataset, last_ndays=240)
 
 # Calculating percentage changes from starting point
-df2 = pd.DataFrame(dataset)
-df2 = df2.div(df2[0][0], axis=0) - 1
-plot_stock_price(df2.values, last_ndays=240)
+#df2 = pd.DataFrame(dataset)
+#df2 = df2.div(df2[0][0], axis=0) - 1
+#plot_stock_price(df2.values, last_ndays=240)
 
 # Calculating percentage changes from starting point
 # + Feature Scaling
-from sklearn.preprocessing import MinMaxScaler
-df3 = pd.DataFrame(dataset)
-df3 = df3.div(df3[0][0], axis=0) - 1
-sc = MinMaxScaler(feature_range = (0, 1))
-scaled_price = sc.fit_transform(df3.values)
-plot_stock_price(scaled_price, last_ndays=240)
+#from sklearn.preprocessing import MinMaxScaler
+#df3 = pd.DataFrame(dataset)
+#df3 = df3.div(df3[0][0], axis=0) - 1
+#sc = MinMaxScaler(feature_range = (0, 1))
+#scaled_price = sc.fit_transform(df3.values)
+#plot_stock_price(scaled_price, last_ndays=240)
 
 # Calculating percentage change
-df = pd.DataFrame(dataset)
-df = df.pct_change().fillna(0)
-plot_stock_price(df.values, last_ndays=240)
+#df = pd.DataFrame(dataset)
+#df = df.pct_change().fillna(0)
+#plot_stock_price(df.values, last_ndays=240)
 
 ###########################################################
 # series_to_supervised
@@ -65,14 +71,13 @@ Xy = normalize_windows(supervised)
 ###########################################################
 # Visualising the stock price
 from util import plot_stock_price
-plot_stock_price(df2.values, first_ndays=55)
 plot_stock_price(Xy[0].transpose())
 
 # + Feature Scaling
-from sklearn.preprocessing import MinMaxScaler
-sc = MinMaxScaler(feature_range = (0, 1))
-sc.fit(Xy.reshape(Xy.shape[0]*Xy.shape[1], 1))
-scaled_Xy = sc.transform(Xy)
+#from sklearn.preprocessing import MinMaxScaler
+#sc = MinMaxScaler(feature_range = (0, 1))
+#sc.fit(Xy.reshape(Xy.shape[0]*Xy.shape[1], 1))
+#scaled_Xy = sc.transform(Xy)
 
 ###########################################################
 # train_test_split
@@ -96,36 +101,98 @@ plot_stock_price(y_test[-1])
 
 ###########################################################
 # Visualising the stock price
-from util import plot_stock_price
-plot_stock_price(df2.values, first_ndays=55)
-plot_stock_price(Xy[0].reshape(55, 1))
-plot_stock_price(scaled_price[0].reshape(55, 1))
+#from util import plot_stock_price
+#plot_stock_price(df2.values, first_ndays=55)
+#lot_stock_price(Xy[0].reshape(55, 1))
+#plot_stock_price(scaled_price[0].reshape(55, 1))
 
 ###########################################################
-# Creating model
-from model import create_stateless_lstm_model
-layers= 1
-output_dim = 50
-optimizer = 'adam'
-regressor = create_stateless_lstm_model(
-    X_train,
-    y_train,
-    layers=layers,
-    output_dim=output_dim, 
-    optimizer=optimizer)
+# Creating stateless model
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
+from keras.layers import Dropout
+from keras.layers import Activation
+from keras.layers import TimeDistributed
+from keras import metrics
+
+input_shape = (X_train.shape[1], 1)
+output = y_train.shape[1]
+
+regressor = Sequential()
+regressor.add(
+    LSTM(units=50,              # Positive integer, dimensionality of the output space.
+    return_sequences=False,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
+    input_shape=input_shape,
+    stateful=False))
+regressor.add(Dropout(0.2))
+
+regressor.add(Dense(units=output))
+# Adding Linear Activation function
+activation = 'linear'
+regressor.add(Activation(activation))
+# Compiling the RNN
+regressor.compile(
+    optimizer='adam',
+    metrics=[metrics.mse],
+    loss='mean_squared_error')
+
+print(regressor.summary())
+
+###########################################################
+# Fitting the RNN to the Training set
+for i in range(10):
+    regressor.fit(
+        X_train, 
+        y_train, 
+        epochs=1, 
+        batch_size=1,
+        validation_data=(X_test, y_test),
+        shuffle=False)
+    regressor.reset_states()
+
+    real_price = y_train
+    predicted_price = regressor.predict(X_train, batch_size=1)
+    #real_price = y_test
+    #predicted_price = regressor.predict(X_test, batch_size=1)
+    
+    real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
+    predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
+            
+    plt.plot(predicted_price, color = 'blue', label = 'Predicted Price')
+    plt.plot(real_price, color = 'red', label = 'Real Price')
+    plt.title('Price Prediction')
+    plt.xlabel('Time')
+    plt.ylabel('ETF Stock Price')
+    plt.legend()
+    plt.show()
+
 ###########################################################
 # Visualising the results
-plt.plot(training_scaled_close_price, color = 'blue', label = 'Predicted Open Price')
-#plt.plot(dataset_pct.values, color = 'red', label = 'Real Open Price')
-plt.title('Open Price Prediction')
+real_price = y_test
+predicted_price = regressor.predict(X_test, batch_size=1)
+
+real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
+predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
+
+
+plt.plot(predicted_price[-30:], color = 'blue', label = 'Predicted Price')
+plt.plot(real_price[-30:], color = 'red', label = 'Real Price')
+plt.title('Price Prediction')
 plt.xlabel('Time')
-plt.ylabel('ETF 0050 Stock Price')
+plt.ylabel('ETF Stock Price')
 plt.legend()
 plt.show()
 
 ###########################################################
-# Prediction submission
-###########################################################
-# predict_split
-from util import predict_split
-X = predict_split(Xy)
+# Creating model
+#from model import create_stateless_lstm_model
+#layers= 1
+#output_dim = 50
+#optimizer = 'adam'
+#regressor = create_stateless_lstm_model(
+#    X_train,
+#    y_train,
+#    layers=layers,
+#    output_dim=output_dim, 
+#    optimizer=optimizer)
