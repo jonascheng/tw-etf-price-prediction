@@ -2,7 +2,7 @@
 # 1. Stateless LSTM
 # 2. Lookback 50 days and forecast 5 days
 # 3. Last 240 days for testing set
-# 2. Normalized
+# 4. Normalized
 """
 Spyder Editor
 

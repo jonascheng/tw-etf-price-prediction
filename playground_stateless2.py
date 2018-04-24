@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# 1. Stateful LSTM
-# 2. Lookback 5 days and forecast 5 days
-# 3. Last 240 days for testing set
-# 4. Normalized
+# 1. Stateless LSTM
+# 2. Percentage change
+# 3. Lookback 50 days and forecast 5 days
+# 4. Last 240 days for testing set
 """
 Spyder Editor
 
@@ -31,44 +31,34 @@ dataset = query_close_price(history, int(stock_id))
 from util import plot_stock_price
 plot_stock_price(dataset, last_ndays=240)
 
+###########################################################
 # Calculating percentage change
-#df = pd.DataFrame(dataset)
-#df = df.pct_change().fillna(0)
-#plot_stock_price(df.values, last_ndays=240)
+df = pd.DataFrame(dataset)
+df = df.pct_change().fillna(0)
 
 # Feature Scaling
-#from sklearn.preprocessing import MinMaxScaler
-#sc = MinMaxScaler(feature_range = (0, 1))
-#scaled_price = sc.fit_transform(dataset)
+from sklearn.preprocessing import MinMaxScaler
+sc = MinMaxScaler(feature_range = (0, 1))
+scaled_price = sc.fit_transform(df.values)
 
 ###########################################################
 # Visualising the stock price
-#from util import plot_stock_price
-#plot_stock_price(dataset, last_ndays=240)
-#plot_stock_price(scaled_price, last_ndays=240)
+from util import plot_stock_price
+plot_stock_price(df.values, last_ndays=240)
+plot_stock_price(scaled_price, last_ndays=240)
 
 ###########################################################
 # series_to_supervised
 from util import series_to_supervised
-supervised = series_to_supervised(dataset, n_in=5, n_out=5)
-#supervised2 = series_to_supervised(scaled_price, n_in=5, n_out=5)
+supervised = series_to_supervised(scaled_price, n_in=50, n_out=5)
 
 ###########################################################
 # Visualising the stock price
-import copy
 from util import plot_stock_price
-plot_stock_price(dataset, first_ndays=10)
+plot_stock_price(df.values, first_ndays=55)
 plot_stock_price(supervised[0].transpose())
-#plot_stock_price(supervised2[0].transpose())
-#ori_Xy = copy.deepcopy(supervised)
-#Xy = np.array(supervised2)
 
-###########################################################
-# normalize_windows
-import copy
-from util import normalize_windows
-ori_Xy = copy.deepcopy(supervised)
-Xy = normalize_windows(supervised)
+Xy = np.array(supervised)
 
 ###########################################################
 # Visualising the stock price
@@ -80,26 +70,23 @@ plot_stock_price(Xy[0].transpose())
 from util import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=240, num_forecasts=5)
 
-y_train = np.reshape(y_train, (y_train.shape[0], y_train.shape[1], 1))
-y_test = np.reshape(y_test, (y_test.shape[0], y_test.shape[1], 1))
-
 ###########################################################
 # Visualising the stock price
 from util import plot_stock_price
-plot_stock_price(supervised[0].reshape(10, 1), first_ndays=5)
+plot_stock_price(supervised[0].reshape(55, 1), first_ndays=50)
 plot_stock_price(X_train[0])
 
-plot_stock_price(supervised[0].reshape(10, 1), last_ndays=5)
+plot_stock_price(supervised[0].reshape(55, 1), last_ndays=5)
 plot_stock_price(y_train[0])
 
-plot_stock_price(supervised[-1].reshape(10, 1), first_ndays=5)
+plot_stock_price(supervised[-1].reshape(55, 1), first_ndays=50)
 plot_stock_price(X_test[-1])
 
-plot_stock_price(supervised[-1].reshape(10, 1), last_ndays=5)
+plot_stock_price(supervised[-1].reshape(55, 1), last_ndays=5)
 plot_stock_price(y_test[-1])
 
 ###########################################################
-# Creating stateful model
+# Creating stateless model
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
@@ -108,37 +95,18 @@ from keras.layers import Activation
 from keras.layers import TimeDistributed
 from keras import metrics
 
+input_shape = (X_train.shape[1], 1)
+output = y_train.shape[1]
+
 regressor = Sequential()
 regressor.add(
     LSTM(units=50,              # Positive integer, dimensionality of the output space.
-    return_sequences=True,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
-    batch_input_shape=(1, 5, 1),
-    stateful=True))
+    return_sequences=False,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
+    input_shape=input_shape,
+    stateful=False))
 regressor.add(Dropout(0.2))
 
-# Adding a second LSTM layer and some Dropout regularisation
-#regressor.add(
-#    LSTM(units=50, 
-#    return_sequences = True,
-#    stateful=True))
-#regressor.add(Dropout(0.2))
-
-# Adding a third LSTM layer and some Dropout regularisation
-#regressor.add(
-#    LSTM(units=50, 
-#    return_sequences = True,
-#    stateful=True))
-#regressor.add(Dropout(0.2))
-
-# Adding a fourth LSTM layer and some Dropout regularisation
-#regressor.add(
-#    LSTM(units=50, 
-#    return_sequences = True,
-#    stateful=True))
-#regressor.add(Dropout(0.2))
-
-regressor.add(
-    TimeDistributed(Dense(1)))
+regressor.add(Dense(units=output))
 # Adding Linear Activation function
 activation = 'linear'
 regressor.add(Activation(activation))
@@ -177,7 +145,7 @@ for i in range(10):
     plt.ylabel('ETF Stock Price')
     plt.legend()
     plt.show()
-    
+
 ###########################################################
 # Visualising the results
 real_price = y_test
@@ -187,8 +155,8 @@ real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
 predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
 
 
-plt.plot(predicted_price, color = 'blue', label = 'Predicted Price')
-plt.plot(real_price, color = 'red', label = 'Real Price')
+plt.plot(predicted_price[-30:], color = 'blue', label = 'Predicted Price')
+plt.plot(real_price[-30:], color = 'red', label = 'Real Price')
 plt.title('Price Prediction')
 plt.xlabel('Time')
 plt.ylabel('ETF Stock Price')
