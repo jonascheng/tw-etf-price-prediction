@@ -49,7 +49,6 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
 
     # Adding Dense layer to aggregate the data from the prediction vector into a single value
     regressor.add(Dense(units=output))
-    # regressor.add(TimeDistributed(Dense(units=1)))
 
     # Adding Linear Activation function
     activation = 'linear'

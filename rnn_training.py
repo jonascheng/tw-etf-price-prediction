@@ -45,6 +45,7 @@ def model(X_train, y_train, X_test, y_test):
     from hyperas.distributions import choice, uniform
 
     from model import create_stateless_lstm_model
+    from util import SavePredictionCallback
 
     nb_epoch = {{choice([1, 10, 100])}}
     batch_size = {{choice([1, 32])}}
@@ -63,12 +64,19 @@ def model(X_train, y_train, X_test, y_test):
         dropout=dropout)
     
     # Defining early stopping criteria
-    earlyStopping = EarlyStopping(monitor='val_loss', min_delta=0.000001, patience=10, verbose=1, mode='min')
+    earlyStopping = EarlyStopping(monitor='loss', min_delta=0.00001, patience=10, verbose=1, mode='min')
+
+    # Defining intermediate prediction result
+    predicted_prefix = 'predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
+    savePrediction = SavePredictionCallback(predicted_prefix, X_train)
 
     # Collecting callback list
-    callbacks_list = [earlyStopping]
+    callbacks_list = [earlyStopping, savePrediction]
 
     # Fitting the RNN to the Training set
+    real_price = y_train
+    real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
+    np.save('real_price.npy', real_price) 
     regressor.fit(
         X_train, 
         y_train, 

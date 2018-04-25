@@ -12,17 +12,17 @@ from util import load_csv, query_close_price, series_to_supervised, normalize_wi
 
 
 class DataLoaderBase(metaclass=ABCMeta):
-    # Tuned params and variables
-    # number of sequence data
-    look_back = 50
-    look_forward = 5
-
     def __init__(self):
         # Importing the dataset
         self.history = load_csv('TBrain_Round2_DataSet_20180331/tetfp.csv')
 
 
 class DataLoader(DataLoaderBase):
+    # Tuned params and variables
+    # number of sequence data
+    look_back = 50
+    look_forward = 5
+    
     def __init__(self):
         super(DataLoader, self).__init__()
         
@@ -37,10 +37,6 @@ class DataLoader(DataLoaderBase):
         # Converting array of list to numpy array
         ori_Xy = np.array(ori_Xy)
         Xy = np.array(Xy)
-        # Feature Scaling in feature range (0, 1)
-        # self.sc = MinMaxScaler(feature_range = (0, 1))
-        # self.sc.fit(Xy.reshape(Xy.shape[0]*Xy.shape[1], 1))
-        # Xy = self.sc.transform(Xy)
         # Spliting dataset into training and testing sets
         self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=self.look_forward)
         X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=self.look_forward)

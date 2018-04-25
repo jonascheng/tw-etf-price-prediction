@@ -8,6 +8,23 @@ import pandas as pd
 # Spliting dataset into training and testing sets
 from sklearn.model_selection import train_test_split as sklearn_train_test_split
 
+from keras.callbacks import Callback
+
+
+class SavePredictionCallback(Callback):
+    def __init__(self, predicted_prefix, X_train):
+        self.predicted_prefix = predicted_prefix
+        self.X_train = X_train
+ 
+    def on_epoch_end(self, epoch, logs={}):
+        # make prediction every 10 epoch and save it
+        if epoch % 10 == 0:
+            predicted_price = self.model.predict(self.X_train, batch_size=1)        
+            predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
+            np.save('{}_{}.npy'.format(self.predicted_prefix, epoch), predicted_price)
+        self.model.reset_states()
+        return
+ 
 
 def load_csv(filepath):
     """
