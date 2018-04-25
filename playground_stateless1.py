@@ -31,25 +31,6 @@ dataset = query_close_price(history, int(stock_id))
 from util import plot_stock_price
 plot_stock_price(dataset, last_ndays=240)
 
-# Calculating percentage changes from starting point
-#df2 = pd.DataFrame(dataset)
-#df2 = df2.div(df2[0][0], axis=0) - 1
-#plot_stock_price(df2.values, last_ndays=240)
-
-# Calculating percentage changes from starting point
-# + Feature Scaling
-#from sklearn.preprocessing import MinMaxScaler
-#df3 = pd.DataFrame(dataset)
-#df3 = df3.div(df3[0][0], axis=0) - 1
-#sc = MinMaxScaler(feature_range = (0, 1))
-#scaled_price = sc.fit_transform(df3.values)
-#plot_stock_price(scaled_price, last_ndays=240)
-
-# Calculating percentage change
-#df = pd.DataFrame(dataset)
-#df = df.pct_change().fillna(0)
-#plot_stock_price(df.values, last_ndays=240)
-
 ###########################################################
 # series_to_supervised
 from util import series_to_supervised
@@ -73,12 +54,6 @@ Xy = normalize_windows(supervised)
 from util import plot_stock_price
 plot_stock_price(Xy[0].transpose())
 
-# + Feature Scaling
-#from sklearn.preprocessing import MinMaxScaler
-#sc = MinMaxScaler(feature_range = (0, 1))
-#sc.fit(Xy.reshape(Xy.shape[0]*Xy.shape[1], 1))
-#scaled_Xy = sc.transform(Xy)
-
 ###########################################################
 # train_test_split
 from util import train_test_split
@@ -98,13 +73,6 @@ plot_stock_price(X_test[-1])
 
 plot_stock_price(supervised[-1].reshape(55, 1), last_ndays=5)
 plot_stock_price(y_test[-1])
-
-###########################################################
-# Visualising the stock price
-#from util import plot_stock_price
-#plot_stock_price(df2.values, first_ndays=55)
-#lot_stock_price(Xy[0].reshape(55, 1))
-#plot_stock_price(scaled_price[0].reshape(55, 1))
 
 ###########################################################
 # Creating stateless model

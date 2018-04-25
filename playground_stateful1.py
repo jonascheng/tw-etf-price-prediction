@@ -31,37 +31,21 @@ dataset = query_close_price(history, int(stock_id))
 from util import plot_stock_price
 plot_stock_price(dataset, last_ndays=240)
 
-# Calculating percentage change
-#df = pd.DataFrame(dataset)
-#df = df.pct_change().fillna(0)
-#plot_stock_price(df.values, last_ndays=240)
-
 # Feature Scaling
 #from sklearn.preprocessing import MinMaxScaler
 #sc = MinMaxScaler(feature_range = (0, 1))
 #scaled_price = sc.fit_transform(dataset)
 
 ###########################################################
-# Visualising the stock price
-#from util import plot_stock_price
-#plot_stock_price(dataset, last_ndays=240)
-#plot_stock_price(scaled_price, last_ndays=240)
-
-###########################################################
 # series_to_supervised
 from util import series_to_supervised
 supervised = series_to_supervised(dataset, n_in=5, n_out=5)
-#supervised2 = series_to_supervised(scaled_price, n_in=5, n_out=5)
 
 ###########################################################
 # Visualising the stock price
-import copy
 from util import plot_stock_price
 plot_stock_price(dataset, first_ndays=10)
 plot_stock_price(supervised[0].transpose())
-#plot_stock_price(supervised2[0].transpose())
-#ori_Xy = copy.deepcopy(supervised)
-#Xy = np.array(supervised2)
 
 ###########################################################
 # normalize_windows
@@ -80,6 +64,7 @@ plot_stock_price(Xy[0].transpose())
 from util import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=240, num_forecasts=5)
 
+# reshape for stateful LSTM
 y_train = np.reshape(y_train, (y_train.shape[0], y_train.shape[1], 1))
 y_test = np.reshape(y_test, (y_test.shape[0], y_test.shape[1], 1))
 
@@ -108,11 +93,13 @@ from keras.layers import Activation
 from keras.layers import TimeDistributed
 from keras import metrics
 
+batch_input_shape = (1, X_train.shape[1], 1)
+
 regressor = Sequential()
 regressor.add(
     LSTM(units=50,              # Positive integer, dimensionality of the output space.
     return_sequences=True,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
-    batch_input_shape=(1, 5, 1),
+    batch_input_shape=batch_input_shape,
     stateful=True))
 regressor.add(Dropout(0.2))
 
@@ -158,7 +145,7 @@ for i in range(10):
         y_train, 
         epochs=1, 
         batch_size=1,
-        #validation_data=(X_test, y_test),
+        validation_data=(X_test, y_test),
         shuffle=False)
     regressor.reset_states()
 
