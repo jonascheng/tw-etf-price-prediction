@@ -3,13 +3,13 @@
 # Importing the libraries
 from keras.models import load_model
 
-from dataloader import DataLoader
+from dataloader import DataForStatelessModel
 from visualizer import Visualizer
 from util import get_model_name
 
 stock_id = '0050'
 
-loader = DataLoader()
+loader = DataForStatelessModel()
 last_price = loader.data_last_price(int(stock_id))
 X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=5)
 X_ori_train, y_ori_train, X_ori_test, y_ori_test = loader.ori_data()

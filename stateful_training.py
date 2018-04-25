@@ -22,7 +22,7 @@ def data():
         stock_id = file.read()
     print('Loading dataset for {}'.format(stock_id))
     import dataloader
-    loader = dataloader.DataLoader()
+    loader = dataloader.DataForStatefulModel()
     X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=240)
     return X_train, y_train, X_test, y_test
 
@@ -44,18 +44,18 @@ def model(X_train, y_train, X_test, y_test):
     from hyperopt import STATUS_OK
     from hyperas.distributions import choice, uniform
 
-    from model import create_stateless_lstm_model
+    from model import create_stateful_lstm_model
     from util import SavePredictionCallback
 
-    nb_epoch = {{choice([1, 10, 100])}}
-    batch_size = {{choice([1, 32])}}
+    nb_epoch = 10
+    batch_size = 1
 
-    layers = {{choice([1, 2, 3])}}
-    output_dim = {{choice([50, 60, 90])}}
-    optimizer = {{choice(['rmsprop', 'adam', 'sgd'])}}
+    layers = 1
+    output_dim = 50
+    optimizer = 'adam'
     dropout = {{choice([0, 0.2])}}
 
-    regressor = create_stateless_lstm_model(
+    regressor = create_stateful_lstm_model(
         X_train,
         y_train,
         layers=layers, 
@@ -67,16 +67,16 @@ def model(X_train, y_train, X_test, y_test):
     earlyStopping = EarlyStopping(monitor='loss', min_delta=0.00001, patience=10, verbose=1, mode='min')
 
     # Defining intermediate prediction result
-    predicted_prefix = 'predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
-    savePrediction = SavePredictionCallback(predicted_prefix, X_train)
+    predicted_prefix = 'stateful_predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
+    savePrediction = SavePredictionCallback(predicted_prefix, X_test)
 
     # Collecting callback list
     callbacks_list = [earlyStopping, savePrediction]
 
     # Fitting the RNN to the Training set
-    real_price = y_train
+    real_price = y_test
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
-    np.save('real_price.npy', real_price) 
+    np.save('stateful_real_price.npy', real_price) 
     regressor.fit(
         X_train, 
         y_train, 
@@ -104,13 +104,13 @@ def start_training(stock_id, trained_model):
         max_evals=5, 
         trials=Trials())
     _, _, X_test, y_test = data()
-    print('Evalutation of best performing model for {}:'.format(stock_id))
-    print(best_model.evaluate(X_test, y_test))
-    print('Best performing model for {} chosen hyper-parameters:'.format(stock_id))
+    print('Evalutation of best performing model for stock id {}:'.format(stock_id))
+    print(best_model.evaluate(X_test, y_test, batch_size=1))
+    print('Best performing model for stock id {} chosen hyper-parameters:'.format(stock_id))
     print(best_run)
     best_model.save(trained_model)
 
 
 if __name__ == '__main__':
     stock_id = 50
-    start_training(stock_id, 'rnn_etf_{}.h5'.format(stock_id))
+    start_training(stock_id, 'stateful_etf_{}.h5'.format(stock_id))

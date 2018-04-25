@@ -7,7 +7,7 @@ import pandas as pd
 
 from keras.models import load_model
 
-from dataloader import DataLoader
+from dataloader import DataForStatelessModel
 from util import get_model_name
 from rnn_training import start_training
 
@@ -33,7 +33,7 @@ def predict():
 
         pred = {}
 
-        loader = DataLoader()
+        loader = DataForStatelessModel()
         last_price = loader.data_last_price(int(stock_id))
         X_test = loader.data_for_prediction(int(stock_id))
 

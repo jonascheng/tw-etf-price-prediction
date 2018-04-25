@@ -11,7 +11,7 @@ from keras import metrics
 
 
 def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
-    print('Creating model with layers {}, output_dim {}, optimizer {}, dropout {}'.format(
+    print('Creating stateless model with layers {}, output_dim {}, optimizer {}, dropout {}'.format(
         layers, 
         output_dim, 
         optimizer,
@@ -37,7 +37,7 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
         regressor.add(Dropout(dropout))
 
     # Adding additional LSTM layers
-    for i in range(layers-1, 0, -1):
+    for i in range(layers - 1, 0, -1):
         print('Adding additional LSTM layers {}'.format(i))
         return_sequences = False if i == 1 else True
         regressor.add(
@@ -49,6 +49,59 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
 
     # Adding Dense layer to aggregate the data from the prediction vector into a single value
     regressor.add(Dense(units=output))
+
+    # Adding Linear Activation function
+    activation = 'linear'
+    regressor.add(Activation(activation))
+
+    # Compiling the RNN
+    regressor.compile(
+        optimizer=optimizer,
+        metrics=[metrics.mse],
+        loss='mean_squared_error')
+
+    print(regressor.summary())
+    return regressor
+
+
+def create_stateful_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
+    print('Creating stateful model with layers {}, output_dim {}, optimizer {}, dropout {}'.format(
+        layers, 
+        output_dim, 
+        optimizer,
+        dropout))
+
+    stateful = True
+    batch_input_shape = (1, X.shape[1], 1)
+    output = y.shape[1]
+    print('input_shape {}, output {}'.format(batch_input_shape, output))
+
+    # Initialising the RNN
+    regressor = Sequential()
+
+    # Adding the first LSTM layer
+    print('Adding the first LSTM layers')
+    return_sequences = True
+    regressor.add(
+        LSTM(units=output_dim,              # Positive integer, dimensionality of the output space.
+        return_sequences=return_sequences,  # Boolean. Whether to return the last output in the output sequence, or the full sequence.
+        batch_input_shape=batch_input_shape,
+        stateful=stateful))
+    if dropout > 0:
+        regressor.add(Dropout(dropout))
+
+    # Adding additional LSTM layers
+    for i in range(layers - 1, 0, -1):
+        print('Adding additional LSTM layers {}'.format(i))
+        regressor.add(
+            LSTM(units=output_dim, 
+            return_sequences=return_sequences,
+            stateful=stateful))
+        if dropout > 0:
+            regressor.add(Dropout(dropout))
+
+    # Adding Dense layer to aggregate the data from the prediction vector into a single value
+    regressor.add(TimeDistributed(Dense(1)))
 
     # Adding Linear Activation function
     activation = 'linear'
