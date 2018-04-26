@@ -38,7 +38,7 @@ def load_csv(filepath):
         Full historical stock prices as a Dataframe
     """
     print('historical data is loading from {}'.format(filepath))
-    return pd.read_csv(filepath, encoding='big5-hkscs')
+    return pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
 
 
 def get_model_name(stock_id):
@@ -94,6 +94,23 @@ def query_avg_price(dataset, stock_id):
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 高低價平均
     return dataset.iloc[:, 4:6].mean(axis=1).values.reshape(-1,1)
+
+
+def query_volume(dataset, stock_id):
+    """
+    Query volume by stock id.
+    Arguments:
+        dataset: Full historical volume as a Dataframe
+        stock_id: A stock id
+    Returns:
+        Sequence of volume as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Extracting/Filtering the training dataset by stock_id    
+    dataset = dataset.loc[dataset['代碼'] == stock_id]
+    assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
+    # Returning 成交量
+    return dataset.iloc[:, 7:8].values
 
 
 def plot_stock_price(series, first_ndays=0, last_ndays=0):
