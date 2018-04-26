@@ -179,8 +179,8 @@ real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
 predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
 
 
-plt.plot(predicted_price[-5:], color = 'blue', label = 'Predicted Price')
-plt.plot(real_price[-5:], color = 'red', label = 'Real Price')
+plt.plot(predicted_price[-240:], color = 'blue', label = 'Predicted Price')
+plt.plot(real_price[-240:], color = 'red', label = 'Real Price')
 plt.title('Price Prediction')
 plt.xlabel('Time')
 plt.ylabel('ETF Stock Price')
