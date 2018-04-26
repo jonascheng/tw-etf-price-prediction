@@ -64,7 +64,7 @@ class DataForStatelessModel(DataLoader):
         self.X_ori_test = predict_split(ori_Xy)
         X_test = predict_split(Xy)
 
-        return X_test
+        return self.X_ori_test, X_test
 
     def data_last_ndays_for_test(self, stock_id, ndays):
         return self.__data(stock_id, ndays)
@@ -72,11 +72,13 @@ class DataForStatelessModel(DataLoader):
     def data(self, stock_id):
         return self.__data(stock_id, ndays=0)
 
-    def ori_data(self):
-        return self.X_ori_train, self.y_ori_train, self.X_ori_test, self.y_ori_test
+    def ori_train_data(self):
+        return self.X_ori_train, self.y_ori_train
+    
+    def ori_test_data(self):
+        return self.X_ori_test, self.y_ori_test
 
     def inverse_transform_prediction(self, prediction):
-        # prediction = self.sc.inverse_transform(prediction)
         prediction = (prediction + 1) * self.X_ori_test[:, 0]
         return prediction
 
