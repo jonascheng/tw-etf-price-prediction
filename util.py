@@ -45,6 +45,23 @@ def get_model_name(stock_id):
     return 'etf_{}_model.h'.format(stock_id)
 
 
+def query_open_price(dataset, stock_id):
+    """
+    Query open stock price by stock id.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+        stock_id: A stock id
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Extracting/Filtering the training dataset by stock_id    
+    dataset = dataset.loc[dataset['代碼'] == stock_id]
+    assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
+    # Returning 開盤價
+    return dataset.iloc[:, 3:4].values
+
+
 def query_close_price(dataset, stock_id):
     """
     Query close stock price by stock id.
@@ -60,6 +77,23 @@ def query_close_price(dataset, stock_id):
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 收盤價
     return dataset.iloc[:, 6:7].values
+
+
+def query_avg_price(dataset, stock_id):
+    """
+    Query high/low stock price by stock id.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+        stock_id: A stock id
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Extracting/Filtering the training dataset by stock_id    
+    dataset = dataset.loc[dataset['代碼'] == stock_id]
+    assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
+    # Returning 高低價平均
+    return dataset.iloc[:, 4:6].mean(axis=1).values.reshape(-1,1)
 
 
 def plot_stock_price(series, first_ndays=0, last_ndays=0):
