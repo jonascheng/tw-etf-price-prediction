@@ -12,16 +12,19 @@ from keras.callbacks import Callback
 
 
 class SavePredictionCallback(Callback):
+    counter = 0
+
     def __init__(self, predicted_prefix, X_train):
         self.predicted_prefix = predicted_prefix
         self.X_train = X_train
  
     def on_epoch_end(self, epoch, logs={}):
         # make prediction every 10 epoch and save it
-        if epoch % 10 == 0:
+        self.counter = self.counter + 1
+        if self.counter % 10 == 0:
             predicted_price = self.model.predict(self.X_train, batch_size=1)        
             predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
-            np.save('{}_{}.npy'.format(self.predicted_prefix, epoch), predicted_price)
+            np.save('{}_{}.npy'.format(self.predicted_prefix, self.counter), predicted_price)
         self.model.reset_states()
         return
  
@@ -69,6 +72,7 @@ def plot_stock_price(series, first_ndays=0, last_ndays=0):
     Returns:
         N/A
     """
+    assert type(series) is np.ndarray, 'unexpected type of series: {}'.format(type(series))
     if first_ndays == 0 and last_ndays == 0:
         plt.plot(series, color='blue', label='Stock Price')
     elif first_ndays > 0:
@@ -76,6 +80,36 @@ def plot_stock_price(series, first_ndays=0, last_ndays=0):
     else:
         plt.plot(series[-last_ndays:, :], color='blue', label='Stock Price')
     plt.title('Stock Price')
+    plt.xlabel('Time')
+    plt.ylabel('Stock Price')
+    plt.legend()
+    plt.show()
+
+
+def plot_real_predicted_stock_price(real_price, predicted_price, title, first_ndays=0, last_ndays=0):
+    """
+    Plot stock price.
+    Arguments:
+        real_price: Sequence of real price as a NumPy array.
+        predicted_price: Sequence of predicted price as a NumPy array.
+        first_ndays, last_ndays:
+            If both are 0, plot whole series, otherwise plot first N days or plot last N days instead.
+    Returns:
+        N/A
+    """
+    assert type(real_price) is np.ndarray, 'unexpected type of real_price: {}'.format(type(real_price))
+    assert type(predicted_price) is np.ndarray, 'unexpected type of predicted_price: {}'.format(type(predicted_price))
+    assert(real_price.shape[0] == predicted_price.shape[0])
+    if first_ndays == 0 and last_ndays == 0:
+        plt.plot(real_price, color='red', label='Real Price')
+        plt.plot(predicted_price, color = 'blue', label = 'Predicted Price')
+    elif first_ndays > 0:
+        plt.plot(real_price[:first_ndays, :], color='red', label='Real Price')
+        plt.plot(predicted_price[:first_ndays, :], color = 'blue', label = 'Predicted Price')
+    else:
+        plt.plot(real_price[-last_ndays:, :], color='red', label='Real Price')    
+        plt.plot(predicted_price[-last_ndays:, :], color = 'blue', label = 'Predicted Price')
+    plt.title(title)
     plt.xlabel('Time')
     plt.ylabel('Stock Price')
     plt.legend()

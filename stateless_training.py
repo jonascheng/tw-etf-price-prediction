@@ -49,9 +49,8 @@ def model(X_train, y_train, X_test, y_test):
 
     nb_epoch = {{choice([1, 10, 100])}}
     batch_size = {{choice([1, 32])}}
-
     layers = {{choice([1, 2, 3, 4])}}
-    output_dim = {{choice([50, 60, 90])}}
+    output_dim = {{choice([40, 50, 60, 90])}}
     optimizer = {{choice(['adam', 'rmsprop', 'sgd'])}}
     dropout = {{choice([0, 0.2])}}
 
@@ -67,7 +66,7 @@ def model(X_train, y_train, X_test, y_test):
     earlyStopping = EarlyStopping(monitor='loss', min_delta=0.00001, patience=10, verbose=1, mode='min')
 
     # Defining intermediate prediction result
-    predicted_prefix = 'predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
+    predicted_prefix = 'stateless_predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
     savePrediction = SavePredictionCallback(predicted_prefix, X_test)
 
     # Collecting callback list
@@ -76,7 +75,7 @@ def model(X_train, y_train, X_test, y_test):
     # Fitting the RNN to the Training set
     real_price = y_test
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
-    np.save('real_price.npy', real_price) 
+    np.save('stateless_real_price.npy', real_price) 
     regressor.fit(
         X_train, 
         y_train, 
@@ -113,4 +112,4 @@ def start_training(stock_id, trained_model):
 
 if __name__ == '__main__':
     stock_id = 50
-    start_training(stock_id, 'rnn_etf_{}.h5'.format(stock_id))
+    start_training(stock_id, 'stateless_etf_{}.h5'.format(stock_id))
