@@ -13,7 +13,8 @@ ndays = 240
 loader = DataForStatelessModel()
 last_price = loader.data_last_price(int(stock_id))
 X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=ndays)
-X_ori_train, y_ori_train, X_ori_test, y_ori_test = loader.ori_data()
+X_ori_train, y_ori_train = loader.ori_train_data()
+X_ori_test, y_ori_test = loader.ori_test_data()
 
 # regressor = load_model(get_model_name(stock_id))
 regressor = load_model('stateless_etf_{}.h5'.format(int(stock_id)))

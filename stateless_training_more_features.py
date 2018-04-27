@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 1. DataForStatelessModel
-# 2. Close Price
+# 2. Open, Average, and Close Price
 # Importing the libraries
 import numpy as np
 import matplotlib.pyplot as plt
