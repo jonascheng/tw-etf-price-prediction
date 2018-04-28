@@ -42,7 +42,7 @@ def load_csv(filepath):
 
 
 def get_model_name(stock_id):
-    return 'etf_{}_model.h'.format(stock_id)
+    return 'etf_{}_model.h5'.format(stock_id)
 
 
 def query_open_price(dataset, stock_id):

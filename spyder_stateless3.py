@@ -3,7 +3,7 @@
 # 2. Lookback 50 days and forecast 5 days
 # 3. Last 240 days for testing set
 # 4. Normalized
-# 5. Open price
+# 5. Open, Average, Close price
 """
 Spyder Editor
 
@@ -52,6 +52,7 @@ from util import series_to_supervised
 supervised = series_to_supervised(dataset, n_in=50, n_out=5)
 supervised_open = series_to_supervised(dataset_open, n_in=50, n_out=5)
 supervised_avg = series_to_supervised(dataset_avg, n_in=50, n_out=5)
+supervised_vol = series_to_supervised(scaled_dataset_vol, n_in=50, n_out=5)
 
 ###########################################################
 # Visualising the stock price
@@ -62,6 +63,8 @@ plot_stock_price(dataset_open, first_ndays=55)
 plot_stock_price(supervised_open[0].transpose())
 plot_stock_price(dataset_avg, first_ndays=55)
 plot_stock_price(supervised_avg[0].transpose())
+plot_stock_price(dataset_vol, first_ndays=55)
+plot_stock_price(supervised_vol[0].transpose())
 
 ###########################################################
 # normalize_windows
@@ -71,6 +74,7 @@ ori_Xy = copy.deepcopy(supervised)
 Xy = normalize_windows(supervised)
 F1 = normalize_windows(supervised_open)
 F2 = normalize_windows(supervised_avg)
+F3 = normalize_windows(supervised_vol)
 
 ###########################################################
 # Visualising the stock price
@@ -86,11 +90,14 @@ X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=240, num_fo
 # Adding more features
 F1_train, F1_test, _, _ = train_test_split(F1, test_samples=240, num_forecasts=5)
 F2_train, F2_test, _, _ = train_test_split(F2, test_samples=240, num_forecasts=5)
+F3_train, F3_test, _, _ = train_test_split(F3, test_samples=240, num_forecasts=5)
 
 X_train = np.append(X_train, F1_train, axis=2)
 X_train = np.append(X_train, F2_train, axis=2)
+#X_train = np.append(X_train, F3_train, axis=2)
 X_test = np.append(X_test, F1_test, axis=2)
 X_test = np.append(X_test, F2_test, axis=2)
+#X_test = np.append(X_test, F3_test, axis=2)
 
 ###########################################################
 # Visualising the stock price
@@ -186,16 +193,3 @@ plt.xlabel('Time')
 plt.ylabel('ETF Stock Price')
 plt.legend()
 plt.show()
-
-###########################################################
-# Creating model
-#from model import create_stateless_lstm_model
-#layers= 1
-#output_dim = 50
-#optimizer = 'adam'
-#regressor = create_stateless_lstm_model(
-#    X_train,
-#    y_train,
-#    layers=layers,
-#    output_dim=output_dim, 
-#    optimizer=optimizer)

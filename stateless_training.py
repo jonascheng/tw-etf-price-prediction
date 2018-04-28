@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+# 1. DataForStatelessModel
+# 2. Close Price
 # Importing the libraries
 import numpy as np
 import matplotlib.pyplot as plt
