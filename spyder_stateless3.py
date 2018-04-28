@@ -81,9 +81,18 @@ F3 = normalize_windows(supervised_vol)
 from util import plot_stock_price
 plot_stock_price(Xy[0].transpose())
 
+real_price = np.concatenate((dataset[0], np.array(dataset)[1:, -1]))
+real_price = np.expand_dims(real_price, axis=1)
+normalized_price = np.concatenate((Xy[0], np.array(Xy)[1:, -1]))
+normalized_price = np.expand_dims(normalized_price, axis=1)
+plot_stock_price(real_price, last_ndays=240)
+plot_stock_price(normalized_price, last_ndays=240)
+
 ###########################################################
 # train_test_split
 from util import train_test_split
+ori_Xy = np.array(ori_Xy)
+Xy = np.array(Xy)
 X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=240, num_forecasts=5)
 
 ###########################################################

@@ -8,7 +8,8 @@ import pandas as pd
 from abc import ABCMeta
 from sklearn.preprocessing import MinMaxScaler
 
-from util import load_csv, query_close_price, series_to_supervised, normalize_windows, train_test_split, predict_split
+from util import load_csv, series_to_supervised, normalize_windows, train_test_split, predict_split
+from util import query_close_price, query_open_price, query_avg_price, query_volume
 
 
 class DataLoader(metaclass=ABCMeta):
@@ -93,19 +94,41 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         super(DataForStatelessModelMoreFeatures, self).__init__()
         
     def __data(self, stock_id, ndays):
-        # Taking 收盤價 as a predictor
+        # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset = query_close_price(self.history, stock_id)
+        dataset_open = query_open_price(self.history, int(stock_id))
+        dataset_avg = query_avg_price(self.history, int(stock_id))
+        dataset_vol = query_volume(self.history, int(stock_id))        
+        # Feature Scaling
+        sc = MinMaxScaler(feature_range = (0, 1))
+        scaled_dataset_vol = sc.fit_transform(dataset_vol)
         # Transforming time series dataset into supervised dataset
         supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=self.look_forward)
+        supervised_open = series_to_supervised(dataset_open, n_in=self.look_back, n_out=self.look_forward)
+        supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=self.look_forward)
+        supervised_vol = series_to_supervised(scaled_dataset_vol, n_in=self.look_back, n_out=self.look_forward)
         # Normalize dataset if needed
         ori_Xy = copy.deepcopy(supervised)
         Xy = normalize_windows(supervised)
+        feature_open = normalize_windows(supervised_open)
+        feature_avg = normalize_windows(supervised_avg)
+        feature_vol = normalize_windows(supervised_vol)        
         # Converting array of list to numpy array
         ori_Xy = np.array(ori_Xy)
         Xy = np.array(Xy)
         # Spliting dataset into training and testing sets
         self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=self.look_forward)
         X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=self.look_forward)
+        # Adding more features
+        feature_open_train, feature_open_test, _, _ = train_test_split(feature_open, test_samples=240, num_forecasts=5)
+        feature_avg_train, feature_avg_test, _, _ = train_test_split(feature_avg, test_samples=240, num_forecasts=5)
+        feature_vol_train, feature_vol_test, _, _ = train_test_split(feature_vol, test_samples=240, num_forecasts=5)
+        X_train = np.append(X_train, feature_open_train, axis=2)
+        X_train = np.append(X_train, feature_avg_train, axis=2)
+        #X_train = np.append(X_train, feature_vol_train, axis=2)
+        X_test = np.append(X_test, feature_open_test, axis=2)
+        X_test = np.append(X_test, feature_avg_test, axis=2)
+        #X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return X_train, y_train, X_test, y_test
 

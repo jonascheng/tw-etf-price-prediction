@@ -4,13 +4,14 @@
 import numpy as np
 from keras.models import load_model
 
-from dataloader import DataForStatelessModel
+from dataloader import DataForStatelessModel, DataForStatelessModelMoreFeatures
 from util import get_model_name, plot_real_predicted_stock_price
 
 stock_id = '0050'
 ndays = 240
 
-loader = DataForStatelessModel()
+#loader = DataForStatelessModel()
+loader = DataForStatelessModelMoreFeatures()
 last_price = loader.data_last_price(int(stock_id))
 X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=ndays)
 X_ori_train, y_ori_train = loader.ori_train_data()
@@ -32,7 +33,7 @@ else:
     real_price = real_price.transpose()
     predicted_price1 = predicted_price1.transpose()
     
-print('Normalized prediction\n{}'.format(predicted_price1))
+#print('Normalized prediction\n{}'.format(predicted_price1))
 plot_real_predicted_stock_price(real_price, predicted_price1, 'Normalized Stock Price Prediction')
 
 # Inversed transform prediction
@@ -46,5 +47,5 @@ else:
     real_price2 = real_price2.transpose()
     predicted_price2 = predicted_price2.transpose()
 
-print('Inversed prediction\n{}'.format(predicted_price2))
+#print('Inversed prediction\n{}'.format(predicted_price2))
 plot_real_predicted_stock_price(real_price2, predicted_price2, 'Stock Price Prediction')

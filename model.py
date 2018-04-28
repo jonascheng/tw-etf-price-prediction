@@ -18,7 +18,7 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
         dropout))
 
     stateful = False
-    input_shape = (X.shape[1], 1)
+    input_shape = (X.shape[1], X.shape[2])
     output = y.shape[1]
     print('input_shape {}, output {}'.format(input_shape, output))
 

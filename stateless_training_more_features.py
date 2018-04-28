@@ -23,7 +23,7 @@ def data():
         stock_id = file.read()
     print('Loading dataset for {}'.format(stock_id))
     import dataloader
-    loader = dataloader.DataForStatelessModel()
+    loader = dataloader.DataForStatelessModelMoreFeatures()
     X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=240)
     return X_train, y_train, X_test, y_test
 
