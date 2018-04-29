@@ -125,10 +125,10 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         feature_vol_train, feature_vol_test, _, _ = train_test_split(feature_vol, test_samples=ndays, num_forecasts=5)
         X_train = np.append(X_train, feature_open_train, axis=2)
         X_train = np.append(X_train, feature_avg_train, axis=2)
-        #X_train = np.append(X_train, feature_vol_train, axis=2)
+        # X_train = np.append(X_train, feature_vol_train, axis=2)
         X_test = np.append(X_test, feature_open_test, axis=2)
         X_test = np.append(X_test, feature_avg_test, axis=2)
-        #X_test = np.append(X_test, feature_vol_test, axis=2)
+        # X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return X_train, y_train, X_test, y_test
 
@@ -138,20 +138,38 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         return dataset[-1:]
 
     def data_for_prediction(self, stock_id):
-        # Taking 收盤價 as a predictor
+        # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset = query_close_price(self.history, stock_id)
+        dataset_open = query_open_price(self.history, int(stock_id))
+        dataset_avg = query_avg_price(self.history, int(stock_id))
+        dataset_vol = query_volume(self.history, int(stock_id))        
+        # Feature Scaling
+        sc = MinMaxScaler(feature_range=(0, 1))
+        scaled_dataset_vol = sc.fit_transform(dataset_vol)
         # Transforming time series dataset into supervised dataset
         supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=0)
+        supervised_open = series_to_supervised(dataset_open, n_in=self.look_back, n_out=0)
+        supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=0)
+        supervised_vol = series_to_supervised(scaled_dataset_vol, n_in=self.look_back, n_out=0)
         # Normalize dataset if needed
         ori_Xy = copy.deepcopy(supervised)
         Xy = normalize_windows(supervised)
+        feature_open = normalize_windows(supervised_open)
+        feature_avg = normalize_windows(supervised_avg)
+        feature_vol = normalize_windows(supervised_vol)        
         # Converting array of list to numpy array
         ori_Xy = np.array(ori_Xy)
         Xy = np.array(Xy)
-
         # Spliting dataset into predicting sets
         self.X_ori_test = predict_split(ori_Xy)
         X_test = predict_split(Xy)
+        # Adding more features
+        feature_open_test = predict_split(feature_open)
+        feature_avg_test = predict_split(feature_avg)
+        feature_vol_test = predict_split(feature_vol)
+        X_test = np.append(X_test, feature_open_test, axis=2)
+        X_test = np.append(X_test, feature_avg_test, axis=2)
+        # X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return self.X_ori_test, X_test
 
