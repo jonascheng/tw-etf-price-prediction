@@ -9,6 +9,9 @@ import pandas as pd
 from hyperopt import Trials, tpe
 from hyperas import optim
 
+import dataloader
+from util import visualize_model
+
 
 def data():
     """
@@ -109,7 +112,11 @@ def start_training(stock_id, trained_model):
     print('Best performing model for stock id {} chosen hyper-parameters:'.format(stock_id))
     print(best_run)
     best_model.save(trained_model)
-
+    # plotting best performing mode
+    ndays = 240
+    plot_prefix = 'stateless_mf_etf_{}_epoch{}_layers{}_output{}_opt{}'.format(stock_id, best_run['nb_epoch'], best_run['layers'], best_run['output_dim'], best_run['optimizer'])
+    loader = dataloader.DataForStatelessModelMoreFeatures()    
+    visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
 if __name__ == '__main__':
     stock_id = 50

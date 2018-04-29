@@ -114,7 +114,7 @@ def start_training(stock_id, trained_model):
     best_model.save(trained_model)
     # plotting best performing mode
     ndays = 240
-    plot_prefix = 'stateless_epoch{}_layers{}_output{}_opt{}'.format(best_run['nb_epoch'], best_run['layers'], best_run['output_dim'], best_run['optimizer'])
+    plot_prefix = 'stateless_etf_{}_epoch{}_layers{}_output{}_opt{}'.format(stock_id, best_run['nb_epoch'], best_run['layers'], best_run['output_dim'], best_run['optimizer'])
     loader = dataloader.DataForStatelessModel()    
     visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
