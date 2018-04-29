@@ -49,11 +49,11 @@ def model(X_train, y_train, X_test, y_test):
     from util import SavePredictionCallback
 
     nb_epoch = {{choice([1, 10, 50])}}
-    batch_size = {{choice([1, 32])}}
+    batch_size = 32
     layers = {{choice([2, 3, 4])}}
     output_dim = {{choice([50, 60, 90])}}
     optimizer = {{choice(['rmsprop', 'sgd', 'adam'])}}
-    dropout = {{choice([0, 0.2, 0.3])}}
+    dropout = 0.2
 
     regressor = create_stateless_lstm_model(
         X_train,
