@@ -120,7 +120,7 @@ def query_volume(dataset, stock_id):
     return dataset.iloc[:, 7:8].values
 
 
-def plot_stock_price(series, first_ndays=0, last_ndays=0):
+def plot_stock_price(series, first_ndays=0, last_ndays=0, filename=None):
     """
     Plot stock price.
     Arguments:
@@ -141,10 +141,13 @@ def plot_stock_price(series, first_ndays=0, last_ndays=0):
     plt.xlabel('Time')
     plt.ylabel('Stock Price')
     plt.legend()
-    plt.show()
+    if filename is not None:
+        plt.savefig(filename)
+    else:
+        plt.show()
 
 
-def plot_real_predicted_stock_price(real_price, predicted_price, title, first_ndays=0, last_ndays=0):
+def plot_real_predicted_stock_price(real_price, predicted_price, title, first_ndays=0, last_ndays=0, filename=None):
     """
     Plot stock price.
     Arguments:
@@ -171,7 +174,10 @@ def plot_real_predicted_stock_price(real_price, predicted_price, title, first_nd
     plt.xlabel('Time')
     plt.ylabel('Stock Price')
     plt.legend()
-    plt.show()
+    if filename is not None:
+        plt.savefig(filename)
+    else:
+        plt.show()
 
 
 def series_to_supervised(series, n_in, n_out):
@@ -274,7 +280,7 @@ def train_test_split(Xy, num_forecasts, test_samples=0):
     return X_train, X_test, y_train, y_test
 
 
-def visualize_model(loader, model, stock_id, ndays, filename):
+def visualize_model(loader, model, stock_id, ndays, plot_prefix):
     X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=ndays)
     X_ori_train, y_ori_train = loader.ori_train_data()
     X_ori_test, y_ori_test = loader.ori_test_data()
@@ -291,8 +297,13 @@ def visualize_model(loader, model, stock_id, ndays, filename):
     else:
         real_price = real_price.transpose()
         predicted_price1 = predicted_price1.transpose()
-        
-    plot_real_predicted_stock_price(real_price, predicted_price1, 'Normalized Stock Price Prediction')
+    
+    filename = '{}_normalized.png'.format(plot_prefix)
+    plot_real_predicted_stock_price(
+        real_price, 
+        predicted_price1, 
+        'Normalized Stock Price Prediction', 
+        filename=filename)
 
     # Inversed transform prediction
     real_price2 = y_ori_test
@@ -305,4 +316,9 @@ def visualize_model(loader, model, stock_id, ndays, filename):
         real_price2 = real_price2.transpose()
         predicted_price2 = predicted_price2.transpose()
 
-    plot_real_predicted_stock_price(real_price2, predicted_price2, 'Stock Price Prediction')
+    filename = '{}.png'.format(plot_prefix)
+    plot_real_predicted_stock_price(
+        real_price2, 
+        predicted_price2, 
+        'Stock Price Prediction', 
+        filename=filename)
