@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Importing the dataset
-dataset_etf_history = pd.read_csv('TBrain_Round2_DataSet_20180331/tetfp.csv',encoding='big5-hkscs')
-dataset_stock_history = pd.read_csv('TBrain_Round2_DataSet_20180331/tsharep.csv',encoding='big5-hkscs')
+dataset_etf_history = pd.read_csv('TBrain_Round2_DataSet_20180427/tetfp.csv',encoding='big5-hkscs')
+dataset_stock_history = pd.read_csv('TBrain_Round2_DataSet_20180427/tsharep.csv',encoding='big5-hkscs')
 
 # Listing unique stock codes
 unique_etf_stock_codes = dataset_etf_history.代碼.unique()

@@ -19,7 +19,7 @@ stock_id = '0050'
 
 ###########################################################
 from util import load_csv
-filepath = 'TBrain_Round2_DataSet_20180331/tetfp.csv'
+filepath = 'TBrain_Round2_DataSet_20180427/tetfp.csv'
 history = load_csv(filepath)
 
 # Extracting/Filtering the training dataset by stock_id

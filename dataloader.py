@@ -15,7 +15,7 @@ from util import query_close_price, query_open_price, query_avg_price, query_vol
 class DataLoader(metaclass=ABCMeta):
     def __init__(self):
         # Importing the dataset
-        self.history = load_csv('TBrain_Round2_DataSet_20180331/tetfp.csv')
+        self.history = load_csv('TBrain_Round2_DataSet_20180427/tetfp.csv')
 
 
 class DataForStatelessModel(DataLoader):
