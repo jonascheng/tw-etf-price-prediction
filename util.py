@@ -143,6 +143,7 @@ def plot_stock_price(series, first_ndays=0, last_ndays=0, filename=None):
     plt.legend()
     if filename is not None:
         plt.savefig(filename)
+        plt.close()
     else:
         plt.show()
 
@@ -176,6 +177,7 @@ def plot_real_predicted_stock_price(real_price, predicted_price, title, first_nd
     plt.legend()
     if filename is not None:
         plt.savefig(filename)
+        plt.close()        
     else:
         plt.show()
 
