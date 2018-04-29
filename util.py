@@ -38,7 +38,10 @@ def load_csv(filepath):
         Full historical stock prices as a Dataframe
     """
     print('historical data is loading from {}'.format(filepath))
-    return pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
+    try:
+        return pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
+    except:
+        return pd.read_csv(filepath, encoding='utf8', thousands=',')
 
 
 def get_model_name(stock_id):
@@ -56,7 +59,8 @@ def query_open_price(dataset, stock_id):
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
     # Extracting/Filtering the training dataset by stock_id    
-    dataset = dataset.loc[dataset['代碼'] == stock_id]
+    column = dataset.columns[0]
+    dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 開盤價
     return dataset.iloc[:, 3:4].values
@@ -73,7 +77,8 @@ def query_close_price(dataset, stock_id):
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
     # Extracting/Filtering the training dataset by stock_id    
-    dataset = dataset.loc[dataset['代碼'] == stock_id]
+    column = dataset.columns[0]
+    dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 收盤價
     return dataset.iloc[:, 6:7].values
@@ -90,7 +95,8 @@ def query_avg_price(dataset, stock_id):
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
     # Extracting/Filtering the training dataset by stock_id    
-    dataset = dataset.loc[dataset['代碼'] == stock_id]
+    column = dataset.columns[0]
+    dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 高低價平均
     return dataset.iloc[:, 4:6].mean(axis=1).values.reshape(-1,1)
@@ -107,7 +113,8 @@ def query_volume(dataset, stock_id):
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
     # Extracting/Filtering the training dataset by stock_id    
-    dataset = dataset.loc[dataset['代碼'] == stock_id]
+    column = dataset.columns[0]
+    dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 成交量
     return dataset.iloc[:, 7:8].values
@@ -265,3 +272,37 @@ def train_test_split(Xy, num_forecasts, test_samples=0):
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
     return X_train, X_test, y_train, y_test
+
+
+def visualize_model(loader, model, stock_id, ndays, filename):
+    X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=ndays)
+    X_ori_train, y_ori_train = loader.ori_train_data()
+    X_ori_test, y_ori_test = loader.ori_test_data()
+
+    # Normalized prediction
+    real_price = y_test
+    predicted_price = model.predict(X_test)
+    predicted_price1 = predicted_price
+    predicted_price2 = predicted_price
+
+    if ndays > 1:
+        real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
+        predicted_price1 = np.concatenate((predicted_price1[0], np.array(predicted_price1)[1:, -1]))
+    else:
+        real_price = real_price.transpose()
+        predicted_price1 = predicted_price1.transpose()
+        
+    plot_real_predicted_stock_price(real_price, predicted_price1, 'Normalized Stock Price Prediction')
+
+    # Inversed transform prediction
+    real_price2 = y_ori_test
+    predicted_price2 = loader.inverse_transform_prediction(predicted_price)
+
+    if ndays > 1:
+        real_price2 = np.concatenate((real_price2[0], np.array(real_price2)[1:, -1]))
+        predicted_price2 = np.concatenate((predicted_price2[0], np.array(predicted_price2)[1:, -1]))
+    else:
+        real_price2 = real_price2.transpose()
+        predicted_price2 = predicted_price2.transpose()
+
+    plot_real_predicted_stock_price(real_price2, predicted_price2, 'Stock Price Prediction')
