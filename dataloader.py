@@ -120,9 +120,9 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=self.look_forward)
         X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=self.look_forward)
         # Adding more features
-        feature_open_train, feature_open_test, _, _ = train_test_split(feature_open, test_samples=240, num_forecasts=5)
-        feature_avg_train, feature_avg_test, _, _ = train_test_split(feature_avg, test_samples=240, num_forecasts=5)
-        feature_vol_train, feature_vol_test, _, _ = train_test_split(feature_vol, test_samples=240, num_forecasts=5)
+        feature_open_train, feature_open_test, _, _ = train_test_split(feature_open, test_samples=ndays, num_forecasts=5)
+        feature_avg_train, feature_avg_test, _, _ = train_test_split(feature_avg, test_samples=ndays, num_forecasts=5)
+        feature_vol_train, feature_vol_test, _, _ = train_test_split(feature_vol, test_samples=ndays, num_forecasts=5)
         X_train = np.append(X_train, feature_open_train, axis=2)
         X_train = np.append(X_train, feature_avg_train, axis=2)
         #X_train = np.append(X_train, feature_vol_train, axis=2)

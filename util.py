@@ -24,7 +24,7 @@ class SavePredictionCallback(Callback):
         if self.counter % 10 == 0:
             predicted_price = self.model.predict(self.X_train, batch_size=1)        
             predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
-            np.save('{}_{}.npy'.format(self.predicted_prefix, self.counter), predicted_price)
+            # np.save('{}_{}.npy'.format(self.predicted_prefix, self.counter), predicted_price)
         self.model.reset_states()
         return
  

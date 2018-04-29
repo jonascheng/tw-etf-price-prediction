@@ -126,8 +126,8 @@ for i in range(10):
     
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
     predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
-    np.save('real_price.npy', real_price)
-    np.save('predicted_price_0.npy', predicted_price)
+    # np.save('real_price.npy', real_price)
+    # np.save('predicted_price_0.npy', predicted_price)
     
     plt.plot(predicted_price, color = 'blue', label = 'Predicted Price')
     plt.plot(real_price, color = 'red', label = 'Real Price')

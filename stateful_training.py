@@ -75,7 +75,7 @@ def model(X_train, y_train, X_test, y_test):
     # Fitting the RNN to the Training set
     real_price = y_test
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
-    np.save('stateful_real_price.npy', real_price) 
+    # np.save('stateful_real_price.npy', real_price) 
     regressor.fit(
         X_train, 
         y_train, 

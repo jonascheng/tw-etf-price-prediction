@@ -48,12 +48,12 @@ def model(X_train, y_train, X_test, y_test):
     from model import create_stateless_lstm_model
     from util import SavePredictionCallback
 
-    nb_epoch = {{choice([1, 10, 100])}}
+    nb_epoch = {{choice([1, 10, 50])}}
     batch_size = {{choice([1, 32])}}
-    layers = {{choice([1, 2, 3, 4])}}
-    output_dim = {{choice([40, 50, 60, 90])}}
-    optimizer = {{choice(['adam', 'rmsprop', 'sgd'])}}
-    dropout = {{choice([0, 0.2])}}
+    layers = {{choice([2, 3, 4])}}
+    output_dim = {{choice([50, 60, 90])}}
+    optimizer = {{choice(['rmsprop', 'sgd', 'adam'])}}
+    dropout = {{choice([0, 0.2, 0.3])}}
 
     regressor = create_stateless_lstm_model(
         X_train,
@@ -76,7 +76,7 @@ def model(X_train, y_train, X_test, y_test):
     # Fitting the RNN to the Training set
     real_price = y_test
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
-    np.save('stateless_real_price.npy', real_price) 
+    # np.save('stateless_real_price.npy', real_price) 
     regressor.fit(
         X_train, 
         y_train, 
