@@ -9,6 +9,9 @@ import pandas as pd
 from hyperopt import Trials, tpe
 from hyperas import optim
 
+import dataloader
+from util import visualize_model
+
 
 def data():
     """
