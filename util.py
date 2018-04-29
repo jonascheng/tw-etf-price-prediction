@@ -252,7 +252,7 @@ def train_test_split(Xy, num_forecasts, test_samples=0):
             Number of timesteps to be predicted base on remaining observations.
     """
     assert type(Xy) is np.ndarray, 'unexpected type of Xy: {}'.format(type(Xy))
-    assert(Xy.shape[0] > test_samples)
+    assert Xy.shape[0] > test_samples, 'Xy.shape[0] is {} and test_samples is {}'.format(Xy.shape[0], test_samples)
     assert(Xy.shape[1] > num_forecasts)
 
     # Historical price for regression

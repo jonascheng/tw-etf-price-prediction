@@ -27,7 +27,11 @@ def data():
     print('Loading dataset for {}'.format(stock_id))
     import dataloader
     loader = dataloader.DataForStatelessModel()
-    X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=240)
+    if stock_id in ['00690', '00692', '00701', '00713']:
+        ndays = 30
+    else:
+        ndays = 240    
+    X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=ndays)
     return X_train, y_train, X_test, y_test
 
 
@@ -113,7 +117,10 @@ def start_training(stock_id, trained_model):
     print(best_run)
     best_model.save(trained_model)
     # plotting best performing mode
-    ndays = 240
+    if stock_id in ['00690', '00692', '00701', '00713']:
+        ndays = 30
+    else:
+        ndays = 240
     plot_prefix = 'stateless_etf_{}_epoch{}_layers{}_output{}_opt{}'.format(stock_id, best_run['nb_epoch'], best_run['layers'], best_run['output_dim'], best_run['optimizer'])
     loader = dataloader.DataForStatelessModel()    
     visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
