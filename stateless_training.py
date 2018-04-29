@@ -109,6 +109,11 @@ def start_training(stock_id, trained_model):
     print('Best performing model for stock id {} chosen hyper-parameters:'.format(stock_id))
     print(best_run)
     best_model.save(trained_model)
+    # plotting best performing mode
+    ndays = 240
+    plot_prefix = 'stateless_epoch{}_layers{}_output{}_opt{}'.format(best_run['nb_epoch'], best_run['layers'], best_run['output_dim'], best_run['optimizer'])
+    loader = dataloader.DataForStatelessModel()    
+    visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
 
 if __name__ == '__main__':
