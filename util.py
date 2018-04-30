@@ -84,6 +84,42 @@ def query_close_price(dataset, stock_id):
     return dataset.iloc[:, 6:7].values
 
 
+def query_high_price(dataset, stock_id):
+    """
+    Query high stock price by stock id.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+        stock_id: A stock id
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Extracting/Filtering the training dataset by stock_id    
+    column = dataset.columns[0]
+    dataset = dataset.loc[dataset[column] == stock_id]
+    assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
+    # Returning 高價
+    return dataset.iloc[:, 4:5].values
+
+
+def query_low_price(dataset, stock_id):
+    """
+    Query low stock price by stock id.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+        stock_id: A stock id
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Extracting/Filtering the training dataset by stock_id    
+    column = dataset.columns[0]
+    dataset = dataset.loc[dataset[column] == stock_id]
+    assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
+    # Returning 低價
+    return dataset.iloc[:, 5:6].values
+
+
 def query_avg_price(dataset, stock_id):
     """
     Query high/low stock price by stock id.
