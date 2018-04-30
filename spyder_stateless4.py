@@ -107,14 +107,19 @@ X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=240, num_fo
 F1_train, F1_test, _, _ = train_test_split(F1, test_samples=240, num_forecasts=5)
 F2_train, F2_test, _, _ = train_test_split(F2, test_samples=240, num_forecasts=5)
 F3_train, F3_test, _, _ = train_test_split(F3, test_samples=240, num_forecasts=5)
+F4_train, F4_test, _, _ = train_test_split(F4, test_samples=240, num_forecasts=5)
+F5_train, F5_test, _, _ = train_test_split(F5, test_samples=240, num_forecasts=5)
 
 X_train = np.append(X_train, F1_train, axis=2)
 X_train = np.append(X_train, F2_train, axis=2)
-#X_train = np.append(X_train, F3_train, axis=2)
+X_train = np.append(X_train, F3_train, axis=2)
+X_train = np.append(X_train, F4_train, axis=2)
+X_train = np.append(X_train, F5_train, axis=2)
 X_test = np.append(X_test, F1_test, axis=2)
 X_test = np.append(X_test, F2_test, axis=2)
-#X_test = np.append(X_test, F3_test, axis=2)
-
+X_test = np.append(X_test, F3_test, axis=2)
+X_test = np.append(X_test, F4_test, axis=2)
+X_test = np.append(X_test, F5_test, axis=2)
 ###########################################################
 # Visualising the stock price
 from util import plot_stock_price
