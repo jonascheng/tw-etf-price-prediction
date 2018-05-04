@@ -55,12 +55,12 @@ def model(X_train, y_train, X_test, y_test):
     from model import create_stateless_lstm_model
     from util import SavePredictionCallback
 
-    nb_epoch = {{choice([1, 10, 50])}}
-    batch_size = 32
+    nb_epoch = {{choice([50, 100, 125])}}
+    batch_size = {{choice([32, 128])}}
     layers = {{choice([2, 3, 4])}}
-    output_dim = {{choice([50, 60, 90])}}
+    output_dim = {{choice([50, 60, 70])}}
     optimizer = {{choice(['rmsprop', 'sgd', 'adam'])}}
-    dropout = 0.2
+    dropout = {{choice([0.2, 0.3])}}
 
     regressor = create_stateless_lstm_model(
         X_train,
@@ -126,5 +126,5 @@ def start_training(stock_id, trained_model):
     visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
 if __name__ == '__main__':
-    stock_id = 50
+    stock_id = 58
     start_training(stock_id, 'stateless_etf_{}.h5'.format(stock_id))
