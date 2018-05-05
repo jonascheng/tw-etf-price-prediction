@@ -12,8 +12,8 @@ from keras import metrics
 
 def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
     print('Creating stateless model with layers {}, output_dim {}, optimizer {}, dropout {}'.format(
-        layers, 
-        output_dim, 
+        layers,
+        output_dim,
         optimizer,
         dropout))
 
@@ -41,13 +41,13 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
         print('Adding additional LSTM layers {}'.format(i))
         return_sequences = False if i == 1 else True
         regressor.add(
-            LSTM(units=output_dim, 
+            LSTM(units=output_dim,
             return_sequences=return_sequences,
             stateful=stateful))
         if dropout > 0:
             regressor.add(Dropout(dropout))
 
-    regressor.add(Dense(16, kernel_initializer="uniform", activation='relu'))
+    # regressor.add(Dense(32, kernel_initializer='uniform', activation='relu'))
 
     # Adding Dense layer to aggregate the data from the prediction vector into a single value
     regressor.add(Dense(units=output))
@@ -68,8 +68,8 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
 
 def create_stateful_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
     print('Creating stateful model with layers {}, output_dim {}, optimizer {}, dropout {}'.format(
-        layers, 
-        output_dim, 
+        layers,
+        output_dim,
         optimizer,
         dropout))
 
@@ -96,7 +96,7 @@ def create_stateful_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
     for i in range(layers - 1, 0, -1):
         print('Adding additional LSTM layers {}'.format(i))
         regressor.add(
-            LSTM(units=output_dim, 
+            LSTM(units=output_dim,
             return_sequences=return_sequences,
             stateful=stateful))
         if dropout > 0:
