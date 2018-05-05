@@ -20,11 +20,11 @@ class SavePredictionCallback(Callback):
  
     def on_epoch_end(self, epoch, logs={}):
         # make prediction every 10 epoch and save it
-        self.counter = self.counter + 1
-        if self.counter % 10 == 0:
-            predicted_price = self.model.predict(self.X_train, batch_size=1)        
-            predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
-            # np.save('{}_{}.npy'.format(self.predicted_prefix, self.counter), predicted_price)
+        # self.counter = self.counter + 1
+        # if self.counter % 10 == 0:
+        #     predicted_price = self.model.predict(self.X_train, batch_size=1)        
+        #     predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
+        #     np.save('{}_{}.npy'.format(self.predicted_prefix, self.counter), predicted_price)
         self.model.reset_states()
         return
  
