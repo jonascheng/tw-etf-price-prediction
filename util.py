@@ -17,17 +17,17 @@ class SavePredictionCallback(Callback):
     def __init__(self, predicted_prefix, X_train):
         self.predicted_prefix = predicted_prefix
         self.X_train = X_train
- 
+
     def on_epoch_end(self, epoch, logs={}):
         # make prediction every 10 epoch and save it
         # self.counter = self.counter + 1
         # if self.counter % 10 == 0:
-        #     predicted_price = self.model.predict(self.X_train, batch_size=1)        
+        #     predicted_price = self.model.predict(self.X_train, batch_size=1)
         #     predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
         #     np.save('{}_{}.npy'.format(self.predicted_prefix, self.counter), predicted_price)
         self.model.reset_states()
         return
- 
+
 
 def load_csv(filepath):
     """
@@ -58,7 +58,7 @@ def query_open_price(dataset, stock_id):
         Sequence of stock price as a NumPy array.
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
-    # Extracting/Filtering the training dataset by stock_id    
+    # Extracting/Filtering the training dataset by stock_id
     column = dataset.columns[0]
     dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
@@ -76,7 +76,7 @@ def query_close_price(dataset, stock_id):
         Sequence of stock price as a NumPy array.
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
-    # Extracting/Filtering the training dataset by stock_id    
+    # Extracting/Filtering the training dataset by stock_id
     column = dataset.columns[0]
     dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
@@ -94,7 +94,7 @@ def query_high_price(dataset, stock_id):
         Sequence of stock price as a NumPy array.
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
-    # Extracting/Filtering the training dataset by stock_id    
+    # Extracting/Filtering the training dataset by stock_id
     column = dataset.columns[0]
     dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
@@ -112,7 +112,7 @@ def query_low_price(dataset, stock_id):
         Sequence of stock price as a NumPy array.
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
-    # Extracting/Filtering the training dataset by stock_id    
+    # Extracting/Filtering the training dataset by stock_id
     column = dataset.columns[0]
     dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
@@ -130,12 +130,12 @@ def query_avg_price(dataset, stock_id):
         Sequence of stock price as a NumPy array.
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
-    # Extracting/Filtering the training dataset by stock_id    
+    # Extracting/Filtering the training dataset by stock_id
     column = dataset.columns[0]
     dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 高低價平均
-    return dataset.iloc[:, 4:6].mean(axis=1).values.reshape(-1,1)
+    return dataset.iloc[:, 4:6].mean(axis=1).values.reshape(-1, 1)
 
 
 def query_volume(dataset, stock_id):
@@ -148,7 +148,7 @@ def query_volume(dataset, stock_id):
         Sequence of volume as a NumPy array.
     """
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
-    # Extracting/Filtering the training dataset by stock_id    
+    # Extracting/Filtering the training dataset by stock_id
     column = dataset.columns[0]
     dataset = dataset.loc[dataset[column] == stock_id]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
@@ -200,20 +200,20 @@ def plot_real_predicted_stock_price(real_price, predicted_price, title, first_nd
     assert(real_price.shape[0] == predicted_price.shape[0])
     if first_ndays == 0 and last_ndays == 0:
         plt.plot(real_price, color='red', label='Real Price')
-        plt.plot(predicted_price, color = 'blue', label = 'Predicted Price')
+        plt.plot(predicted_price, color='blue', label='Predicted Price')
     elif first_ndays > 0:
         plt.plot(real_price[:first_ndays, :], color='red', label='Real Price')
-        plt.plot(predicted_price[:first_ndays, :], color = 'blue', label = 'Predicted Price')
+        plt.plot(predicted_price[:first_ndays, :], color='blue', label='Predicted Price')
     else:
-        plt.plot(real_price[-last_ndays:, :], color='red', label='Real Price')    
-        plt.plot(predicted_price[-last_ndays:, :], color = 'blue', label = 'Predicted Price')
+        plt.plot(real_price[-last_ndays:, :], color='red', label='Real Price')
+        plt.plot(predicted_price[-last_ndays:, :], color='blue', label='Predicted Price')
     plt.title(title)
     plt.xlabel('Time')
     plt.ylabel('Stock Price')
     plt.legend()
     if filename is not None:
         plt.savefig(filename)
-        plt.close()        
+        plt.close()
     else:
         plt.show()
 
@@ -273,15 +273,15 @@ def predict_split(Xy):
     X = np.reshape(X, (X.shape[0], X.shape[1], 1))
 
     return X
-    
-    
+
+
 def train_test_split(Xy, num_forecasts, test_samples=0):
     """
     Split supervised learning dataset into training and testing sets
     Arguments:
         Xy: Two dimensions of sequence observations as a NumPy array.
         test_samples:
-            If test_samples > 0, reserve the last test_samples days (axis 0) of 
+            If test_samples > 0, reserve the last test_samples days (axis 0) of
                 sequence observations as test set.
             If test_samples = 0, random reserve 20% of sequence observations as test set.
         num_forecasts:
@@ -295,8 +295,8 @@ def train_test_split(Xy, num_forecasts, test_samples=0):
     X = Xy[:, :-num_forecasts]
     # Target price for regression
     y = Xy[:, -num_forecasts:]
-        
-    # Spliting dataset into training and testing sets    
+
+    # Spliting dataset into training and testing sets
     if test_samples > 0:
         # Select the last ndays working date for testing and the others for training.
         X_train = X[:-test_samples, :]
@@ -306,7 +306,7 @@ def train_test_split(Xy, num_forecasts, test_samples=0):
     else:
         # Select 20% of the data for testing and 80% for training.
         # Shuffle the data in order to train in random order.
-        X_train, X_test, y_train, y_test = sklearn_train_test_split(X, y, test_size=0.2, shuffle=True, random_state=0) 
+        X_train, X_test, y_train, y_test = sklearn_train_test_split(X, y, test_size=0.2, shuffle=True, random_state=0)
 
     # Reshape the inputs from 1 dimenstion to 3 dimension
     # X_train.shape[0]: batch_size which is number of observations
@@ -335,12 +335,12 @@ def visualize_model(loader, model, stock_id, ndays, plot_prefix):
     else:
         real_price = real_price.transpose()
         predicted_price1 = predicted_price1.transpose()
-    
+
     filename = '{}_normalized.png'.format(plot_prefix)
     plot_real_predicted_stock_price(
-        real_price, 
-        predicted_price1, 
-        'Normalized Stock Price Prediction', 
+        real_price,
+        predicted_price1,
+        'Normalized Stock Price Prediction',
         filename=filename)
 
     # Inversed transform prediction
@@ -356,7 +356,7 @@ def visualize_model(loader, model, stock_id, ndays, plot_prefix):
 
     filename = '{}.png'.format(plot_prefix)
     plot_real_predicted_stock_price(
-        real_price2, 
-        predicted_price2, 
-        'Stock Price Prediction', 
+        real_price2,
+        predicted_price2,
+        'Stock Price Prediction',
         filename=filename)
