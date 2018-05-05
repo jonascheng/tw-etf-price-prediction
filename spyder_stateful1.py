@@ -17,8 +17,9 @@ import pandas as pd
 stock_id = '0050'
 
 ###########################################################
+import settings
 from util import load_csv
-filepath = 'TBrain_Round2_DataSet_20180427/tetfp.csv'
+filepath = '{}/tetfp.csv'.format(settings.DATASET_PATH)
 history = load_csv(filepath)
 
 # Extracting/Filtering the training dataset by stock_id
@@ -105,21 +106,21 @@ regressor.add(Dropout(0.2))
 
 # Adding a second LSTM layer and some Dropout regularisation
 #regressor.add(
-#    LSTM(units=50, 
+#    LSTM(units=50,
 #    return_sequences = True,
 #    stateful=True))
 #regressor.add(Dropout(0.2))
 
 # Adding a third LSTM layer and some Dropout regularisation
 #regressor.add(
-#    LSTM(units=50, 
+#    LSTM(units=50,
 #    return_sequences = True,
 #    stateful=True))
 #regressor.add(Dropout(0.2))
 
 # Adding a fourth LSTM layer and some Dropout regularisation
 #regressor.add(
-#    LSTM(units=50, 
+#    LSTM(units=50,
 #    return_sequences = True,
 #    stateful=True))
 #regressor.add(Dropout(0.2))
@@ -141,9 +142,9 @@ print(regressor.summary())
 # Fitting the RNN to the Training set
 for i in range(10):
     regressor.fit(
-        X_train, 
-        y_train, 
-        epochs=1, 
+        X_train,
+        y_train,
+        epochs=1,
         batch_size=1,
         validation_data=(X_test, y_test),
         shuffle=False)
@@ -153,10 +154,10 @@ for i in range(10):
     predicted_price = regressor.predict(X_train, batch_size=1)
     #real_price = y_test
     #predicted_price = regressor.predict(X_test, batch_size=1)
-    
+
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
     predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
-            
+
     plt.plot(predicted_price, color = 'blue', label = 'Predicted Price')
     plt.plot(real_price, color = 'red', label = 'Real Price')
     plt.title('Price Prediction')
@@ -164,7 +165,7 @@ for i in range(10):
     plt.ylabel('ETF Stock Price')
     plt.legend()
     plt.show()
-    
+
 ###########################################################
 # Visualising the results
 real_price = y_test
