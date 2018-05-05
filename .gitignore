@@ -3,3 +3,4 @@
 *.npy
 *.txt
 __pycache__/
+bak/
