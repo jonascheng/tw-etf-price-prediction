@@ -14,12 +14,12 @@ from stateless_training_more_features import start_training
 
 # ETF list
 stock_ids = [
-    '0050', '0051', '0052', '0053', '0054', 
-    '0055', '0056', '0057', '0058', '0059', 
+    '0050', '0051', '0052', '0053', '0054',
+    '0055', '0056', '0057', '0058', '0059',
     '006201', '006203', '006204', '006208', '00690',
     '00692', '00701', '00713']
 assert(len(stock_ids)==18)
-# stock_ids = ['0050', '0051']
+# stock_ids = ['0050', '0051', '00690', '00692']
 
 
 def convert_ud(pct_change):
@@ -54,7 +54,7 @@ def predict():
         # Calculating Up/Down trend
         prices = np.concatenate((last_price, predicted_price))
         ud = pd.DataFrame(prices).pct_change().dropna().values
-        
+
         pred.update({
             'ETFid': stock_id,
             'Mon_ud': convert_ud(ud[0][0]),
@@ -67,7 +67,7 @@ def predict():
             'Thu_cprice': '{0:.2f}'.format(predicted_price[3][0]),
             'Fri_ud': convert_ud(ud[4][0]),
             'Fri_cprice': '{0:.2f}'.format(predicted_price[4][0])
-            })
+        })
 
         predictions.append(pred)
         print('Predicting stock {} completed'.format(stock_id))
@@ -76,7 +76,7 @@ def predict():
     df.to_csv(
         'etf_predictions.csv',
         index=False,
-        columns=['ETFid','Mon_ud','Mon_cprice','Tue_ud','Tue_cprice','Wed_ud','Wed_cprice','Thu_ud','Thu_cprice','Fri_ud','Fri_cprice'])
+        columns=['ETFid', 'Mon_ud', 'Mon_cprice', 'Tue_ud', 'Tue_cprice', 'Wed_ud', 'Wed_cprice', 'Thu_ud', 'Thu_cprice', 'Fri_ud', 'Fri_cprice'])
 
 
 def train():
