@@ -35,7 +35,7 @@ def data():
     return X_train, y_train, X_test, y_test
 
 """
-# 20180429
+# 20180429 Open/Close/Avg
 nb_epoch = {{choice([1, 10, 50])}}
 batch_size = 32
 layers = {{choice([2, 3, 4])}}
@@ -44,6 +44,15 @@ optimizer = {{choice(['rmsprop', 'sgd', 'adam'])}}
 dropout = 0.2
 """
 
+"""
+# 20180506 Open/Close/Avg/High/Low
+nb_epoch = {{choice([50, 100, 125])}}
+batch_size = {{choice([32, 128])}}
+layers = {{choice([2, 3, 4])}}
+output_dim = {{choice([50, 60, 70, 256])}}
+optimizer = {{choice(['rmsprop', 'adam'])}}
+dropout = {{choice([0.2, 0.3])}}
+"""
 
 def model(X_train, y_train, X_test, y_test):
     """

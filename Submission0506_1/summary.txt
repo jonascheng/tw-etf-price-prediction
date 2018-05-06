@@ -1,4 +1,4 @@
-SUM MSE: 0.004589526197136
+SUM MSE 0.004566198884277
 
 Evalutation of best performing model for stock id 0050:
 
@@ -7,9 +7,9 @@ Evalutation of best performing model for stock id 0050:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0002501154066218684, 0.0002501154066218684]
+[0.00026047159917652607, 0.00026047159917652607]
 Best performing model for stock id 0050 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 0051:
 
@@ -18,9 +18,9 @@ Evalutation of best performing model for stock id 0051:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.00024573218543082475, 0.00024573218543082475]
+[0.00025202891750571627, 0.00025202891750571627]
 Best performing model for stock id 0051 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 1, 'layers': 0, 'nb_epoch': 2, 'optimizer': 0, 'output_dim': 1}
 
 Evalutation of best performing model for stock id 0052:
 
@@ -29,9 +29,9 @@ Evalutation of best performing model for stock id 0052:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0005347629262056823, 0.0005347629262056823]
+[0.0005653539177728817, 0.0005653539177728817]
 Best performing model for stock id 0052 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 0053:
 
@@ -40,9 +40,9 @@ Evalutation of best performing model for stock id 0053:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.00035046783353512485, 0.00035046783353512485]
+[0.00033175636975405116, 0.00033175636975405116]
 Best performing model for stock id 0053 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 1, 'layers': 0, 'nb_epoch': 2, 'optimizer': 0, 'output_dim': 1}
 
 Evalutation of best performing model for stock id 0054:
 
@@ -51,9 +51,9 @@ Evalutation of best performing model for stock id 0054:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0002642259195757409, 0.0002642259195757409]
+[0.0002544278996841361, 0.0002544278996841361]
 Best performing model for stock id 0054 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 0055:
 
@@ -61,24 +61,21 @@ Evalutation of best performing model for stock id 0055:
  96/240 [===========>..................] - ETA: 0s
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
-240/240 [==============================] - 0s 2ms/step
-[0.00015532261507663256, 0.00015532261507663256]
+240/240 [==============================] - 0s 1ms/step
+[0.00015642451180610805, 0.00015642451180610805]
 Best performing model for stock id 0055 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 1, 'layers': 0, 'nb_epoch': 2, 'optimizer': 0, 'output_dim': 1}
 
 Evalutation of best performing model for stock id 0056:
 
  32/240 [===>..........................] - ETA: 0s
- 64/240 [=======>......................] - ETA: 0s
  96/240 [===========>..................] - ETA: 0s
-128/240 [===============>..............] - ETA: 0s
 160/240 [===================>..........] - ETA: 0s
-192/240 [=======================>......] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
-240/240 [==============================] - 0s 2ms/step
-[0.00016357034619431942, 0.00016357034619431942]
+240/240 [==============================] - 0s 1ms/step
+[0.00015428500870863596, 0.00015428500870863596]
 Best performing model for stock id 0056 chosen hyper-parameters:
-{'layers': 1, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 0}
+{'batch_size': 1, 'dropout': 1, 'layers': 0, 'nb_epoch': 2, 'optimizer': 0, 'output_dim': 1}
 
 Evalutation of best performing model for stock id 0057:
 
@@ -87,9 +84,9 @@ Evalutation of best performing model for stock id 0057:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0002345780502461518, 0.0002345780502461518]
+[0.0002617389060712109, 0.0002617389060712109]
 Best performing model for stock id 0057 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 1, 'layers': 0, 'nb_epoch': 2, 'optimizer': 0, 'output_dim': 1}
 
 Evalutation of best performing model for stock id 0058:
 
@@ -98,9 +95,9 @@ Evalutation of best performing model for stock id 0058:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.00017699115560390055, 0.00017699115560390055]
+[0.00017594129700834553, 0.00017594129700834553]
 Best performing model for stock id 0058 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 0059:
 
@@ -109,9 +106,9 @@ Evalutation of best performing model for stock id 0059:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0002288992089840273, 0.0002288992089840273]
+[0.00023508078108231228, 0.00023508078108231228]
 Best performing model for stock id 0059 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 006201:
 
@@ -120,23 +117,20 @@ Evalutation of best performing model for stock id 006201:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0005749782198108732, 0.0005749782198108732]
+[0.0006165099640687307, 0.0006165099640687307]
 Best performing model for stock id 006201 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 006203:
 
  32/240 [===>..........................] - ETA: 0s
- 64/240 [=======>......................] - ETA: 0s
  96/240 [===========>..................] - ETA: 0s
-128/240 [===============>..............] - ETA: 0s
 160/240 [===================>..........] - ETA: 0s
-192/240 [=======================>......] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
-240/240 [==============================] - 0s 2ms/step
-[0.0002879400427142779, 0.0002879400427142779]
+240/240 [==============================] - 0s 1ms/step
+[0.00029017404885962607, 0.00029017404885962607]
 Best performing model for stock id 006203 chosen hyper-parameters:
-{'layers': 1, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 0}
+{'batch_size': 1, 'dropout': 1, 'layers': 0, 'nb_epoch': 2, 'optimizer': 0, 'output_dim': 1}
 
 Evalutation of best performing model for stock id 006204:
 
@@ -145,9 +139,9 @@ Evalutation of best performing model for stock id 006204:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0002075032884022221, 0.0002075032884022221]
+[0.00020379575920136025, 0.00020379575920136025]
 Best performing model for stock id 006204 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 006208:
 
@@ -156,34 +150,34 @@ Evalutation of best performing model for stock id 006208:
 160/240 [===================>..........] - ETA: 0s
 224/240 [===========================>..] - ETA: 0s
 240/240 [==============================] - 0s 1ms/step
-[0.0003521010803524405, 0.0003521010803524405]
+[0.0003461572147595386, 0.0003461572147595386]
 Best performing model for stock id 006208 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 00690:
 
-30/30 [==============================] - 0s 2ms/step
-[0.00014414856559596956, 0.00014414856559596956]
+30/30 [==============================] - 0s 1ms/step
+[0.00011624851322267205, 0.00011624851322267205]
 Best performing model for stock id 00690 chosen hyper-parameters:
-{'layers': 1, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 0}
+{'batch_size': 1, 'dropout': 1, 'layers': 0, 'nb_epoch': 2, 'optimizer': 0, 'output_dim': 1}
 
 Evalutation of best performing model for stock id 00692:
 
-30/30 [==============================] - 0s 2ms/step
-[0.00022002494370099157, 0.00022002494370099157]
+30/30 [==============================] - 0s 1ms/step
+[0.00012954141129739583, 0.00012954141129739583]
 Best performing model for stock id 00692 chosen hyper-parameters:
-{'layers': 1, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 0}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 00701:
 
 30/30 [==============================] - 0s 1ms/step
-[0.0001304152247030288, 0.0001304152247030288]
+[9.673432941781357e-05, 9.673432941781357e-05]
 Best performing model for stock id 00701 chosen hyper-parameters:
-{'layers': 0, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 1}
+{'batch_size': 1, 'dropout': 0, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
 
 Evalutation of best performing model for stock id 00713:
 
 30/30 [==============================] - 0s 2ms/step
-[6.774918438168243e-05, 6.774918438168243e-05]
+[0.00011952843487961218, 0.00011952843487961218]
 Best performing model for stock id 00713 chosen hyper-parameters:
-{'layers': 1, 'nb_epoch': 2, 'optimizer': 2, 'output_dim': 0}
+{'batch_size': 0, 'dropout': 1, 'layers': 1, 'nb_epoch': 1, 'optimizer': 1, 'output_dim': 3}
