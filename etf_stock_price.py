@@ -53,7 +53,7 @@ def predict():
 
         # Calculating Up/Down trend
         prices = np.concatenate((last_price, predicted_price))
-        ud = pd.DataFrame(prices).pct_change().dropna().values
+        ud = pd.DataFrame(prices).round(2).pct_change().dropna().values
 
         pred.update({
             'ETFid': stock_id,
