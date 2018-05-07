@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-stock_id = '0050'
+stock_id = '00713'
 
 ###########################################################
 import settings
@@ -34,10 +34,8 @@ dataset_close = df.values
 
 ###########################################################
 # Visualising the stock price
-last_ndays = 365
 from util import plot_stock_price
-plot_stock_price(dataset, first_ndays=last_ndays)
-plot_stock_price(dataset, last_ndays=last_ndays)
+plot_stock_price(dataset)
 plot_stock_price(dataset_vol)
 plot_stock_price(dataset_close)
 
@@ -45,13 +43,7 @@ plot_stock_price(dataset_close)
 # Visualising autocorrelation function
 from matplotlib import pyplot
 from statsmodels.graphics.tsaplots import plot_acf
-plot_acf(dataset, lags=100)
-pyplot.show()
-
-plot_acf(dataset_vol, lags=100)
-pyplot.show()
-
-plot_acf(dataset_close, lags=100)
+plot_acf(dataset, lags=6)
 pyplot.show()
 
 ###########################################################

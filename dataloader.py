@@ -5,7 +5,7 @@ import copy
 import numpy as np
 import pandas as pd
 
-from abc import ABCMeta
+import abc
 from sklearn.preprocessing import MinMaxScaler
 
 import settings
@@ -14,7 +14,7 @@ from util import query_close_price, query_open_price, query_volume, query_high_p
 from util import query_avg_price
 
 
-class DataLoader(metaclass=ABCMeta):
+class DataLoader(abc.ABC):
     def __init__(self):
         # Importing the dataset
         filepath = '{}/tetfp.csv'.format(settings.DATASET_PATH)
@@ -96,7 +96,31 @@ class DataForStatelessModelMoreFeatures(DataLoader):
     def __init__(self):
         super(DataForStatelessModelMoreFeatures, self).__init__()
 
+    def __set_look_back(self, stock_id):
+        if stock_id in [57, 58, 6208]:
+            self.look_back = 110
+        if stock_id in [50, 51, 52, 53, 6203, 6204]:
+            self.look_back = 100
+        elif stock_id in [54, 59]:
+            self.look_back = 90
+        elif stock_id in [55]:
+            self.look_back = 80
+        elif stock_id in [56, 6201]:
+            self.look_back = 70
+        elif stock_id in [690]:
+            self.look_back = 18
+        elif stock_id in [701]:
+            self.look_back = 13
+        elif stock_id in [692]:
+            self.look_back = 12
+        elif stock_id in [713]:
+            self.look_back = 6
+        else:
+            self.look_back = 50
+
     def __data(self, stock_id, ndays):
+        self.__set_look_back(stock_id)
+
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset = query_close_price(self.history, stock_id)
         dataset_open = query_open_price(self.history, int(stock_id))
@@ -154,6 +178,8 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         return dataset[-1:]
 
     def data_for_prediction(self, stock_id):
+        self.__set_look_back(stock_id)
+
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset = query_close_price(self.history, stock_id)
         dataset_open = query_open_price(self.history, int(stock_id))

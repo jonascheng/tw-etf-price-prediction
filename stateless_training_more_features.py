@@ -36,22 +36,22 @@ def data():
 
 """
 # 20180429 Open/Close/Avg
-nb_epoch = {{choice([1, 10, 50])}}
+nb_epoch = {{choice([1, 10, 50])}} => 50
 batch_size = 32
-layers = {{choice([2, 3, 4])}}
-output_dim = {{choice([50, 60, 90])}}
+layers = {{choice([2, 3, 4])}} => 2, 3
+output_dim = {{choice([50, 60, 90])}} => 50, 60
 optimizer = {{choice(['rmsprop', 'sgd', 'adam'])}}
 dropout = 0.2
 """
 
 """
 # 20180506 Open/Close/Avg/High/Low
-nb_epoch = {{choice([50, 100, 125])}}
-batch_size = {{choice([32, 128])}}
-layers = {{choice([2, 3, 4])}}
-output_dim = {{choice([50, 60, 70, 256])}}
-optimizer = {{choice(['rmsprop', 'adam'])}}
-dropout = {{choice([0.2, 0.3])}}
+nb_epoch = {{choice([50, 100, 125])}} => 100, 125
+batch_size = {{choice([32, 128])}} => all
+layers = {{choice([2, 3, 4])}} => 2, 3
+output_dim = {{choice([50, 60, 70, 256])}} => 50, 60, 256
+optimizer = {{choice(['rmsprop', 'adam'])}} => all
+dropout = {{choice([0.2, 0.3])}} => all
 """
 
 def model(X_train, y_train, X_test, y_test):
@@ -74,12 +74,12 @@ def model(X_train, y_train, X_test, y_test):
     from model import create_stateless_lstm_model
     from util import SavePredictionCallback
 
-    nb_epoch = {{choice([50, 100, 125])}}
+    nb_epoch = {{choice([50, 100, 125, 150])}}
     batch_size = {{choice([32, 128])}}
-    layers = {{choice([2, 3, 4])}}
-    output_dim = {{choice([50, 60, 70, 256])}}
-    optimizer = {{choice(['rmsprop', 'adam'])}}
-    dropout = {{choice([0.2, 0.3])}}
+    layers = {{choice([1, 2, 3, 4])}}
+    output_dim = {{choice([40, 50, 60, 256])}}
+    optimizer = {{choice(['rmsprop', 'sgd', 'adam'])}}
+    dropout = {{choice([0.1, 0.2, 0.3, 0.4])}}
 
     regressor = create_stateless_lstm_model(
         X_train,
@@ -90,14 +90,15 @@ def model(X_train, y_train, X_test, y_test):
         dropout=dropout)
 
     # Defining early stopping criteria
-    earlyStopping = EarlyStopping(monitor='loss', min_delta=0.00001, patience=10, verbose=1, mode='min')
+    # earlyStopping = EarlyStopping(monitor='loss', min_delta=0.00001, patience=10, verbose=1, mode='min')
 
     # Defining intermediate prediction result
     predicted_prefix = 'stateless_mf_etf_predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_opt{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
     savePrediction = SavePredictionCallback(predicted_prefix, X_test)
 
     # Collecting callback list
-    callbacks_list = [earlyStopping, savePrediction]
+    # callbacks_list = [earlyStopping, savePrediction]
+    callbacks_list = [savePrediction]
 
     # Fitting the RNN to the Training set
     real_price = y_test
@@ -147,5 +148,5 @@ def start_training(stock_id, trained_model):
     visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
 if __name__ == '__main__':
-    stock_id = 50
+    stock_id = 6201
     start_training(stock_id, 'stateless_etf_{}.h5'.format(stock_id))
