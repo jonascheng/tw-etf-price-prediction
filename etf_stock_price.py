@@ -4,6 +4,7 @@
 import sys
 import numpy as np
 import pandas as pd
+import subprocess
 
 from keras.models import load_model
 
@@ -82,7 +83,16 @@ def predict():
 def train():
     for stock_id in stock_ids:
         print('Training stock {}...'.format(stock_id))
-        start_training(stock_id, get_model_name(stock_id))
+        cmd = 'python stateless_training_more_features.py {} {}'.format(stock_id, get_model_name(stock_id))
+        fhandle = open('etf_stock_price_train_{}.txt'.format(stock_id), 'w')
+        proc = subprocess.Popen(
+            cmd,
+            shell=True,
+            close_fds=True,
+            stderr=fhandle,
+            stdout=fhandle)
+        proc.wait()
+        fhandle.close()
         print('Training stock {} completed'.format(stock_id))
 
 
