@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from argparse import ArgumentParser
+
 from hyperopt import Trials, tpe
 from hyperas import optim
 
@@ -148,5 +150,11 @@ def start_training(stock_id, trained_model):
     visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
 if __name__ == '__main__':
-    stock_id = 6201
-    start_training(stock_id, 'stateless_etf_{}.h5'.format(stock_id))
+    parser = ArgumentParser()
+    parser.add_argument('stock_id', help='stock id')
+    parser.add_argument('trained_model', help='output model name')
+    args = parser.parse_args()
+    print('start training process for...')
+    print('stock id: {}'.format(args.stock_id))
+    print('output model name: {}'.format(args.trained_model))
+    start_training(args.stock_id, args.trained_model)
