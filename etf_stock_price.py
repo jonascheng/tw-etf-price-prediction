@@ -10,17 +10,15 @@ from keras.models import load_model
 
 from dataloader import DataForStatelessModel, DataForStatelessModelMoreFeatures
 from util import get_model_name
-# from stateless_training import start_training
-from stateless_training_more_features import start_training
 
 # ETF list
-# stock_ids = [
-#     '0050', '0051', '0052', '0053', '0054',
-#     '0055', '0056', '0057', '0058', '0059',
-#     '006201', '006203', '006204', '006208', '00690',
-#     '00692', '00701', '00713']
-# assert(len(stock_ids)==18)
-stock_ids = ['0052', '0054', '006201', '006208', '00690', '00692', '00701', '00713']
+stock_ids = [
+    '0050', '0051', '0052', '0053', '0054',
+    '0055', '0056', '0057', '0058', '0059',
+    '006201', '006203', '006204', '006208', '00690',
+    '00692', '00701', '00713']
+assert(len(stock_ids)==18)
+# stock_ids = ['0052', '0054', '006201', '006208', '00690', '00692', '00701', '00713']
 
 
 def convert_ud(pct_change):
