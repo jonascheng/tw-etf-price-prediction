@@ -163,12 +163,12 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         X_train = np.append(X_train, feature_high_train, axis=2)
         X_train = np.append(X_train, feature_low_train, axis=2)
         X_train = np.append(X_train, feature_avg_train, axis=2)
-        # X_train = np.append(X_train, feature_vol_train, axis=2)
+        X_train = np.append(X_train, feature_vol_train, axis=2)
         X_test = np.append(X_test, feature_open_test, axis=2)
         X_test = np.append(X_test, feature_high_test, axis=2)
         X_test = np.append(X_test, feature_low_test, axis=2)
         X_test = np.append(X_test, feature_avg_test, axis=2)
-        # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return X_train, y_train, X_test, y_test
 
@@ -222,7 +222,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         X_test = np.append(X_test, feature_high_test, axis=2)
         X_test = np.append(X_test, feature_low_test, axis=2)
         X_test = np.append(X_test, feature_avg_test, axis=2)
-        # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return self.X_ori_test, X_test
 
