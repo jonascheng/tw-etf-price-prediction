@@ -47,8 +47,6 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
         if dropout > 0:
             regressor.add(Dropout(dropout))
 
-    # regressor.add(Dense(32, kernel_initializer='uniform', activation='relu'))
-
     # Adding Dense layer to aggregate the data from the prediction vector into a single value
     regressor.add(Dense(units=output))
 
