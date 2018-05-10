@@ -1,3 +1,6 @@
+arrow
+fake-useragent
+
 tensorflow
 # A very simple wrapper for convenient hyperparameter optimization
 hyperas
