@@ -99,7 +99,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
     def __set_look_back(self, stock_id):        
         if stock_id in [57, 58]:
             self.look_back = 110
-        elif stock_id in [50, 51, 53, 6203, 6204]:
+        elif stock_id in [50, 6203, 6204]:
             self.look_back = 100
         elif stock_id in [54, 59]:
             self.look_back = 90
@@ -114,7 +114,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         elif stock_id in [713]:
             self.look_back = 6
         else:
-            # 52, 6208, 692
+            # 51, 52, 53, 6208, 692
             self.look_back = 50
         print('set look back to {} for stock {}'.format(self.look_back, stock_id))
 
