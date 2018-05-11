@@ -45,4 +45,4 @@ with open('weighted_stock_price_index.csv', 'w') as file:
         else:
             print('stat({}) is not OK'.format(stat))
         
-        time.sleep(10)
+        time.sleep(60)
