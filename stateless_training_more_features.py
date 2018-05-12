@@ -130,7 +130,7 @@ def start_training(stock_id, trained_model):
         model=model,
         data=data,
         algo=tpe.suggest,
-        max_evals=300,
+        max_evals=10,
         trials=Trials())
     _, _, X_test, y_test = data()
     print('Evalutation of best performing model for stock id {}:'.format(stock_id))
