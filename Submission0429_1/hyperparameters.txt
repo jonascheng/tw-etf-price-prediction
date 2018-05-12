@@ -1,6 +1,6 @@
-nb_epoch = {{choice([1, 10, 50])}}
-batch_size = 32
 layers = {{choice([2, 3, 4])}}
-output_dim = {{choice([50, 60, 90])}}
+nb_epoch = {{choice([1, 10, 50])}}
 optimizer = {{choice(['rmsprop', 'sgd', 'adam'])}}
+output_dim = {{choice([50, 60, 90])}}
+batch_size = 32
 dropout = 0.2
