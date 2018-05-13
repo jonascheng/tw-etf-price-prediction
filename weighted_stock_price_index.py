@@ -17,7 +17,7 @@ with open('weighted_stock_price_index.csv', 'w') as file:
     ua = UserAgent()
 
     # header
-    file.write('data,open,high,low,close\n')
+    file.write('"date","open","high","low","close"\n')
 
     start_date = arrow.get(2013, 1, 1)
     end_date = arrow.now()
@@ -41,8 +41,12 @@ with open('weighted_stock_price_index.csv', 'w') as file:
             data = r.get('data')
             for row in data:
                 date, open, high, low, close = row
-                file.write('{},{},{},{},{}\n'.format(date, open, high, low, close))
+                #將民國年轉為西元年
+                date = date.split('/')
+                date[0] = str(int(date[0]) + 1911)
+                date = ''.join(date)
+                file.write('"{}","{}","{}","{}","{}"\n'.format(date, open, high, low, close))
         else:
             print('stat({}) is not OK'.format(stat))
-        
+
         time.sleep(60)
