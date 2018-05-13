@@ -1,0 +1,257 @@
+SUM MSE 0.004074197898444254
+
+Evalutation of best performing model for stock id 0050:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 64/240 [=======>......................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+192/240 [=======================>......] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 1s 2ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00022797738007890683, 0.00022797738007890683]
+Best performing model for stock id 0050 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 1, 'nb_epoch': 3, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 0051:
+
+ 32/240 [===>..........................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 583us/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.0002403235858461509, 0.0002403235858461509]
+Best performing model for stock id 0051 chosen hyper-parameters:
+{'batch_size': 1, 'dropout': 2, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
+
+Evalutation of best performing model for stock id 0052:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 1ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00047094177183074255, 0.00047094177183074255]
+Best performing model for stock id 0052 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 1, 'nb_epoch': 3, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 0053:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 1ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.0003203347926804175, 0.0003203347926804175]
+Best performing model for stock id 0053 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 1, 'nb_epoch': 3, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 0054:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 64/240 [=======>......................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+192/240 [=======================>......] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 1s 3ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.0002391818988447388, 0.0002391818988447388]
+Best performing model for stock id 0054 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 2, 'layers': 1, 'nb_epoch': 3, 'optimizer': 1, 'output_dim': 2}
+
+Evalutation of best performing model for stock id 0055:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 64/240 [=======>......................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+192/240 [=======================>......] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 2ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00013382489851210266, 0.00013382489851210266]
+Best performing model for stock id 0055 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 2, 'layers': 1, 'nb_epoch': 4, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 0056:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 2ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00013293890418329587, 0.00013293890418329587]
+Best performing model for stock id 0056 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 1, 'nb_epoch': 3, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 0057:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 64/240 [=======>......................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+192/240 [=======================>......] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 1s 2ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00023776498661997418, 0.00023776498661997418]
+Best performing model for stock id 0057 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 1, 'nb_epoch': 3, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 0058:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 1ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00017686489348610243, 0.00017686489348610243]
+Best performing model for stock id 0058 chosen hyper-parameters:
+{'batch_size': 1, 'dropout': 2, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
+
+Evalutation of best performing model for stock id 0059:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 64/240 [=======>......................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+192/240 [=======================>......] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 2ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00022138098768967514, 0.00022138098768967514]
+Best performing model for stock id 0059 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 2, 'layers': 1, 'nb_epoch': 4, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 006201:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 2ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.0005453538789879531, 0.0005453538789879531]
+Best performing model for stock id 006201 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 1, 'nb_epoch': 3, 'optimizer': 0, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 006203:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 0s 1ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00027172730381911, 0.00027172730381911]
+Best performing model for stock id 006203 chosen hyper-parameters:
+{'batch_size': 1, 'dropout': 2, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
+
+Evalutation of best performing model for stock id 006204:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 64/240 [=======>......................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+192/240 [=======================>......] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 1s 3ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00019077944743912668, 0.00019077944743912668]
+Best performing model for stock id 006204 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 2, 'layers': 1, 'nb_epoch': 3, 'optimizer': 1, 'output_dim': 2}
+
+Evalutation of best performing model for stock id 006208:
+
+ 32/240 [===>..........................] - ETA: 0s
+ 64/240 [=======>......................] - ETA: 0s
+ 96/240 [===========>..................] - ETA: 0s
+128/240 [===============>..............] - ETA: 0s
+160/240 [===================>..........] - ETA: 0s
+192/240 [=======================>......] - ETA: 0s
+224/240 [===========================>..] - ETA: 0s
+240/240 [==============================] - 1s 2ms/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.0003217133324748526, 0.0003217133324748526]
+Best performing model for stock id 006208 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 2, 'nb_epoch': 1, 'optimizer': 1, 'output_dim': 1}
+
+Evalutation of best performing model for stock id 00690:
+
+30/30 [==============================] - 0s 263us/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.0001008554536383599, 0.0001008554536383599]
+Best performing model for stock id 00690 chosen hyper-parameters:
+{'batch_size': 1, 'dropout': 2, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
+
+Evalutation of best performing model for stock id 00692:
+
+30/30 [==============================] - 0s 602us/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[0.00011284791980870068, 0.00011284791980870068]
+Best performing model for stock id 00692 chosen hyper-parameters:
+{'batch_size': 1, 'dropout': 2, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
+
+Evalutation of best performing model for stock id 00701:
+
+30/30 [==============================] - 0s 219us/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[5.523547588381916e-05, 5.523547588381916e-05]
+Best performing model for stock id 00701 chosen hyper-parameters:
+{'batch_size': 1, 'dropout': 2, 'layers': 0, 'nb_epoch': 1, 'optimizer': 0, 'output_dim': 0}
+
+Evalutation of best performing model for stock id 00713:
+
+30/30 [==============================] - 0s 388us/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+[7.415098662022501e-05, 7.415098662022501e-05]
+Best performing model for stock id 00713 chosen hyper-parameters:
+{'batch_size': 0, 'dropout': 0, 'layers': 2, 'nb_epoch': 1, 'optimizer': 1, 'output_dim': 1}
