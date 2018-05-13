@@ -19,12 +19,6 @@ class SavePredictionCallback(Callback):
         self.X_train = X_train
 
     def on_epoch_end(self, epoch, logs={}):
-        # make prediction every 10 epoch and save it
-        # self.counter = self.counter + 1
-        # if self.counter % 10 == 0:
-        #     predicted_price = self.model.predict(self.X_train, batch_size=1)
-        #     predicted_price = np.concatenate((predicted_price[0], np.array(predicted_price)[1:, -1]))
-        #     np.save('{}_{}.npy'.format(self.predicted_prefix, self.counter), predicted_price)
         self.model.reset_states()
         return
 
@@ -154,6 +148,14 @@ def query_volume(dataset, stock_id):
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 成交量
     return dataset.iloc[:, 7:8].values
+
+
+def load_weighted_csv(filepath):
+    print('historical weighted stock price is loading from {}'.format(filepath))
+    try:
+        return pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
+    except:
+        return pd.read_csv(filepath, encoding='utf8', thousands=',')
 
 
 def plot_stock_price(series, first_ndays=0, last_ndays=0, filename=None):

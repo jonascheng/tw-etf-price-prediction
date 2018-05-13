@@ -56,6 +56,16 @@ optimizer = {{choice(['rmsprop', 'adam'])}} => all
 dropout = {{choice([0.2, 0.3])}} => all
 """
 
+"""
+# 20180513 Open/Close/Avg/High/Low/Vol/Variable Lookback
+nb_epoch = {{choice([50, 100, 125, 150, 200])}}
+batch_size = {{choice([32, 128])}}
+layers = {{choice([1, 2, 4])}}
+output_dim = {{choice([50, 60, 256])}}
+optimizer = {{choice(['rmsprop', 'adam'])}}
+dropout = {{choice([0.2, 0.3, 0.4])}}
+"""
+
 
 def model(X_train, y_train, X_test, y_test):
     """
@@ -93,7 +103,7 @@ def model(X_train, y_train, X_test, y_test):
         dropout=dropout)
 
     # Defining early stopping criteria
-    earlyStopping = EarlyStopping(monitor='loss', min_delta=0.000001, patience=50, verbose=1, mode='min')
+    earlyStopping = EarlyStopping(monitor='loss', min_delta=0.000001, patience=25, verbose=1, mode='min')
 
     # Defining intermediate prediction result
     predicted_prefix = 'stateless_mf_etf_predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_opt{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
@@ -130,7 +140,7 @@ def start_training(stock_id, trained_model):
         model=model,
         data=data,
         algo=tpe.suggest,
-        max_evals=10,
+        max_evals=5,
         trials=Trials())
     _, _, X_test, y_test = data()
     print('Evalutation of best performing model for stock id {}:'.format(stock_id))
