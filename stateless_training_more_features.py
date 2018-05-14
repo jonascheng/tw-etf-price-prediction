@@ -58,12 +58,12 @@ dropout = {{choice([0.2, 0.3])}} => all
 
 """
 # 20180513 Open/Close/Avg/High/Low/Vol/Variable Lookback
-nb_epoch = {{choice([50, 100, 125, 150, 200])}}
-batch_size = {{choice([32, 128])}}
-layers = {{choice([1, 2, 4])}}
-output_dim = {{choice([50, 60, 256])}}
-optimizer = {{choice(['rmsprop', 'adam'])}}
-dropout = {{choice([0.2, 0.3, 0.4])}}
+nb_epoch = {{choice([50, 100, 125, 150, 200])}} => 100, 150, 200
+batch_size = {{choice([32, 128])}} => all
+layers = {{choice([1, 2, 4])}} => all
+output_dim = {{choice([50, 60, 256])}} => all
+optimizer = {{choice(['rmsprop', 'adam'])}} => all
+dropout = {{choice([0.2, 0.3, 0.4])}} => all
 """
 
 
@@ -87,9 +87,9 @@ def model(X_train, y_train, X_test, y_test):
     from model import create_stateless_lstm_model
     from util import SavePredictionCallback
 
-    nb_epoch = {{choice([50, 100, 125, 150, 200])}}
+    nb_epoch = {{choice([100, 150, 200])}}
     batch_size = {{choice([32, 128])}}
-    layers = {{choice([1, 2, 4])}}
+    layers = {{choice([1, 2, 3, 4])}}
     output_dim = {{choice([50, 60, 256])}}
     optimizer = {{choice(['rmsprop', 'adam'])}}
     dropout = {{choice([0.2, 0.3, 0.4])}}
