@@ -23,7 +23,7 @@ class SavePredictionCallback(Callback):
         return
 
 
-def load_csv(filepath):
+def load_csv(filepath, stock_id=None):
     """
     Load a dataset from csv file.
     Arguments:
@@ -33,9 +33,15 @@ def load_csv(filepath):
     """
     print('historical data is loading from {}'.format(filepath))
     try:
-        return pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
+        df = pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
     except:
-        return pd.read_csv(filepath, encoding='utf8', thousands=',')
+        df = pd.read_csv(filepath, encoding='utf8', thousands=',')
+    if stock_id is not None:
+        # Extracting/Filtering the training dataset by stock_id
+        column = df.columns[0]
+        query_stock_id = df[column] == stock_id
+        df = df[query_stock_id]
+    return df
 
 
 def get_model_name(stock_id):
@@ -116,7 +122,7 @@ def query_low_price(dataset, stock_id):
 
 def query_avg_price(dataset, stock_id):
     """
-    Query high/low stock price by stock id.
+    Query avg stock price by stock id.
     Arguments:
         dataset: Full historical stock prices as a Dataframe
         stock_id: A stock id
@@ -150,12 +156,84 @@ def query_volume(dataset, stock_id):
     return dataset.iloc[:, 7:8].values
 
 
-def load_weighted_csv(filepath):
+def load_weighted_csv(filepath, stock_df):
     print('historical weighted stock price is loading from {}'.format(filepath))
+    assert type(stock_df) is pd.DataFrame, 'unexpected type of series: {}'.format(type(stock_df))
     try:
-        return pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
+        df = pd.read_csv(filepath, encoding='big5-hkscs', thousands=',')
     except:
-        return pd.read_csv(filepath, encoding='utf8', thousands=',')
+        df = pd.read_csv(filepath, encoding='utf8', thousands=',')
+    # Extracting/Filtering the training dataset by date range from stokc_df
+    date = stock_df[stock_df.columns[1]]
+    query_date_range = df['date'].isin(date)
+    df = df[query_date_range]
+    assert stock_df.shape[0] == df.shape[0], 'dataframe size does not match stock_df({}) df({})'.format(stock_df.shape[0], df.shape[0])
+    return df
+
+
+def query_weighted_open_price(dataset):
+    """
+    Query weighted open stock price.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Returning 收盤價
+    return dataset.iloc[:, 1:2].values
+
+
+def query_weighted_close_price(dataset):
+    """
+    Query weighted close stock price.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Returning 收盤價
+    return dataset.iloc[:, 4:5].values
+
+
+def query_weighted_high_price(dataset):
+    """
+    Query weighted high stock price.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Returning 收盤價
+    return dataset.iloc[:, 2:3].values
+
+
+def query_weighted_low_price(dataset):
+    """
+    Query weighted low stock price.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Returning 收盤價
+    return dataset.iloc[:, 3:4].values
+
+
+def query_weighted_avg_price(dataset):
+    """
+    Query weighted avg stock price.
+    Arguments:
+        dataset: Full historical stock prices as a Dataframe
+    Returns:
+        Sequence of stock price as a NumPy array.
+    """
+    assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
+    # Returning 高低價平均
+    return dataset.iloc[:, 2:4].mean(axis=1).values.reshape(-1, 1)
 
 
 def plot_stock_price(series, first_ndays=0, last_ndays=0, filename=None):
