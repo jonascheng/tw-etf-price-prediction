@@ -66,6 +66,16 @@ optimizer = {{choice(['rmsprop', 'adam'])}} => all
 dropout = {{choice([0.2, 0.3, 0.4])}} => all
 """
 
+"""
+# 20180520
+nb_epoch = {{choice([100, 150, 200])}}
+batch_size = {{choice([32, 128])}}
+layers = {{choice([1, 2, 3, 4])}}
+output_dim = {{choice([50, 60, 256])}}
+optimizer = {{choice(['rmsprop', 'adam'])}}
+dropout = {{choice([0.2, 0.3, 0.4])}}
+"""
+
 
 def model(X_train, y_train, X_test, y_test):
     """
@@ -87,10 +97,10 @@ def model(X_train, y_train, X_test, y_test):
     from model import create_stateless_lstm_model
     from util import SavePredictionCallback
 
-    nb_epoch = {{choice([100, 150, 200])}}
+    nb_epoch = {{choice([200, 400])}}
     batch_size = {{choice([32, 128])}}
-    layers = {{choice([1, 2, 3, 4])}}
-    output_dim = {{choice([50, 60, 256])}}
+    layers = {{choice([5, 10])}}
+    output_dim = {{choice([256, 512])}}
     optimizer = {{choice(['rmsprop', 'adam'])}}
     dropout = {{choice([0.2, 0.3, 0.4])}}
 
@@ -123,7 +133,7 @@ def model(X_train, y_train, X_test, y_test):
         batch_size=batch_size,
         validation_data=(X_test, y_test),
         callbacks=callbacks_list,
-        shuffle=False)
+        shuffle=True)
 
     # Evaluating the model
     score, mse = regressor.evaluate(X_test, y_test, batch_size=batch_size)

@@ -58,7 +58,8 @@ def create_stateless_lstm_model(X, y, layers, output_dim, optimizer, dropout=0):
     regressor.compile(
         optimizer=optimizer,
         metrics=[metrics.mse],
-        loss='mean_squared_error')
+        loss='mean_squared_error',
+        sample_weight_mode='temporal')
 
     print(regressor.summary())
     return regressor
