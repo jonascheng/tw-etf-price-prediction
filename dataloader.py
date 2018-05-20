@@ -23,9 +23,31 @@ class DataLoader(abc.ABC):
         # Importing the dataset
         filepath = '{}/tetfp.csv'.format(settings.DATASET_PATH)
         self.history = load_csv(filepath, stock_id)
-        if self.stock_id is not None:
-            filepath = '{}/weighted_stock_price_index.csv'.format(settings.DATASET_PATH)
-            self.weighted_history = load_weighted_csv(filepath, self.history)
+        # if self.stock_id is not None:
+        #     filepath = '{}/weighted_stock_price_index.csv'.format(settings.DATASET_PATH)
+        #     self.weighted_history = load_weighted_csv(filepath, self.history)
+
+    def _set_look_back(self, stock_id):
+        # default look_back
+        self.look_back = 50
+        # keep 51, 52, 53, 6208, 692 default
+        # if stock_id in [57, 58]:
+        #     self.look_back = 110
+        # elif stock_id in [50, 6203, 6204]:
+        #     self.look_back = 100
+        # elif stock_id in [54, 59]:
+        #     self.look_back = 90
+        # elif stock_id in [55]:
+        #     self.look_back = 80
+        # elif stock_id in [56, 6201]:
+        #     self.look_back = 70
+        # elif stock_id in [690]:
+        #     self.look_back = 18
+        # elif stock_id in [701]:
+        #     self.look_back = 13
+        # elif stock_id in [713]:
+        #     self.look_back = 6
+        print('set look back to {} for stock {}'.format(self.look_back, stock_id))
 
 
 class DataForStatelessModel(DataLoader):
@@ -34,10 +56,12 @@ class DataForStatelessModel(DataLoader):
     look_back = 50
     look_forward = 5
 
-    def __init__(self):
-        super(DataForStatelessModel, self).__init__()
+    def __init__(self, stock_id):
+        super(DataForStatelessModel, self).__init__(stock_id)
 
     def __data(self, stock_id, ndays):
+        self._set_look_back(stock_id)
+
         # Taking 收盤價 as a predictor
         dataset = query_close_price(self.history, stock_id)
         # Transforming time series dataset into supervised dataset
@@ -60,6 +84,8 @@ class DataForStatelessModel(DataLoader):
         return dataset[-1:]
 
     def data_for_prediction(self, stock_id):
+        self._set_look_back(stock_id)
+
         # Taking 收盤價 as a predictor
         dataset = query_close_price(self.history, stock_id)
         # Transforming time series dataset into supervised dataset
@@ -70,7 +96,6 @@ class DataForStatelessModel(DataLoader):
         # Converting array of list to numpy array
         ori_Xy = np.array(ori_Xy)
         Xy = np.array(Xy)
-
         # Spliting dataset into predicting sets
         self.X_ori_test = predict_split(ori_Xy)
         X_test = predict_split(Xy)
@@ -102,28 +127,6 @@ class DataForStatelessModelMoreFeatures(DataLoader):
 
     def __init__(self, stock_id=None):
         super(DataForStatelessModelMoreFeatures, self).__init__(stock_id)
-
-    def _set_look_back(self, stock_id):        
-        if stock_id in [57, 58]:
-            self.look_back = 110
-        elif stock_id in [50, 6203, 6204]:
-            self.look_back = 100
-        elif stock_id in [54, 59]:
-            self.look_back = 90
-        elif stock_id in [55]:
-            self.look_back = 80
-        elif stock_id in [56, 6201]:
-            self.look_back = 70
-        elif stock_id in [690]:
-            self.look_back = 18
-        elif stock_id in [701]:
-            self.look_back = 13
-        elif stock_id in [713]:
-            self.look_back = 6
-        else:
-            # 51, 52, 53, 6208, 692
-            self.look_back = 50
-        print('set look back to {} for stock {}'.format(self.look_back, stock_id))
 
     def __data(self, stock_id, ndays):
         self._set_look_back(stock_id)
@@ -476,7 +479,7 @@ class DataForStatelessModelWeighted(DataForStatelessModelMoreFeatures):
         dataset_weighted_high = query_weighted_high_price(self.weighted_history)
         dataset_weighted_low = query_weighted_low_price(self.weighted_history)
         dataset_weighted_avg = query_weighted_avg_price(self.weighted_history)
-        
+
         # Transforming time series dataset into supervised dataset
         supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=0)
         supervised_open = series_to_supervised(dataset_open, n_in=self.look_back, n_out=0)
@@ -524,7 +527,7 @@ class DataForStatelessModelWeighted(DataForStatelessModelMoreFeatures):
         feature_weighted_high_test = predict_split(feature_weighted_high)
         feature_weighted_low_test = predict_split(feature_weighted_low)
         feature_weighted_avg_test = predict_split(feature_weighted_avg)
-        
+
         X_test = np.append(X_test, feature_open_test, axis=2)
         X_test = np.append(X_test, feature_high_test, axis=2)
         X_test = np.append(X_test, feature_low_test, axis=2)
