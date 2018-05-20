@@ -37,7 +37,7 @@ def predict():
 
         pred = {}
 
-        loader = DataForStatelessModelMoreFeatures()
+        loader = DataForStatelessModel(int(stock_id))
         # Querying the last day of stock price
         last_price = loader.data_last_price(int(stock_id))
         X_ori_test, X_test = loader.data_for_prediction(int(stock_id))
