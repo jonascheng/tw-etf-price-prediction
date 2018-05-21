@@ -1,0 +1,6 @@
+nb_epoch = 200
+batch_size = 128
+layers = {{choice([4, 5])}}
+output_dim = {{choice([128, 256])}}
+optimizer = 'adam'
+dropout = 0.2
