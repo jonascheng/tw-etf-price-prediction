@@ -28,7 +28,7 @@ def data():
         stock_id = file.read()
     print('Loading dataset for {}'.format(stock_id))
     import dataloader
-    loader = dataloader.DataForStatelessModelMoreFeatures()
+    loader = dataloader.DataForStatelessModelMoreFeatures(int(stock_id))
     if stock_id in ['00690', '00692', '00701', '00713']:
         ndays = 30
     else:
@@ -97,12 +97,12 @@ def model(X_train, y_train, X_test, y_test):
     from model import create_stateless_lstm_model
     from util import SavePredictionCallback
 
-    nb_epoch = {{choice([200, 400])}}
-    batch_size = {{choice([32, 128])}}
-    layers = {{choice([5, 10])}}
-    output_dim = {{choice([256, 512])}}
-    optimizer = {{choice(['rmsprop', 'adam'])}}
-    dropout = {{choice([0.2, 0.3, 0.4])}}
+    nb_epoch = 200
+    batch_size = 128
+    layers = {{choice([4, 5])}}
+    output_dim = {{choice([128, 256])}}
+    optimizer = 'adam'
+    dropout = 0.2
 
     regressor = create_stateless_lstm_model(
         X_train,
@@ -166,7 +166,7 @@ def start_training(stock_id, trained_model):
     plot_prefix = 'stateless_mf_etf_stock_{}'.format(stock_id)
     for key, value in best_run.items():
         plot_prefix = '_'.join((plot_prefix, str(key), str(value)))
-    loader = dataloader.DataForStatelessModelMoreFeatures()
+    loader = dataloader.DataForStatelessModelMoreFeatures(int(stock_id))
     visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
 if __name__ == '__main__':
