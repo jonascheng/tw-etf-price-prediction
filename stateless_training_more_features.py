@@ -125,12 +125,13 @@ def model(X_train, y_train, X_test, y_test):
     # Fitting the RNN to the Training set
     real_price = y_test
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
-    # np.save('stateless_real_price.npy', real_price)
     regressor.fit(
         X_train,
         y_train,
         epochs=nb_epoch,
         batch_size=batch_size,
+        # validation_split=0.5,
+        # this would overwrite validation_split
         validation_data=(X_test, y_test),
         callbacks=callbacks_list,
         shuffle=True)
@@ -160,9 +161,9 @@ def start_training(stock_id, trained_model):
     best_model.save(trained_model)
     # plotting best performing mode
     if stock_id in ['00690', '00692', '00701', '00713']:
-        ndays = 30
+        ndays = 60
     else:
-        ndays = 240
+        ndays = 120
     plot_prefix = 'stateless_mf_etf_stock_{}'.format(stock_id)
     for key, value in best_run.items():
         plot_prefix = '_'.join((plot_prefix, str(key), str(value)))

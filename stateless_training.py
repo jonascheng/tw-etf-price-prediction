@@ -93,7 +93,7 @@ def model(X_train, y_train, X_test, y_test):
         batch_size=batch_size,
         validation_data=(X_test, y_test),
         callbacks=callbacks_list,
-        shuffle=False)
+        shuffle=True)
 
     # Evaluating the model
     score, mse = regressor.evaluate(X_test, y_test, batch_size=batch_size)

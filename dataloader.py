@@ -28,25 +28,24 @@ class DataLoader(abc.ABC):
         #     self.weighted_history = load_weighted_csv(filepath, self.history)
 
     def _set_look_back(self, stock_id):
-        # default look_back
-        self.look_back = 60
         # keep 51, 52, 53, 6208, 692 default
-        # if stock_id in [57, 58]:
-        #     self.look_back = 110
-        # elif stock_id in [50, 6203, 6204]:
-        #     self.look_back = 100
-        # elif stock_id in [54, 59]:
-        #     self.look_back = 90
-        # elif stock_id in [55]:
-        #     self.look_back = 80
-        # elif stock_id in [56, 6201]:
-        #     self.look_back = 70
+        self.look_back = 60
+        if stock_id in [57, 58]:
+            self.look_back = 110
+        elif stock_id in [50, 6203, 6204]:
+            self.look_back = 100
+        elif stock_id in [54, 59]:
+            self.look_back = 90
+        elif stock_id in [55]:
+            self.look_back = 80
+        elif stock_id in [56, 6201]:
+            self.look_back = 70
         # elif stock_id in [690]:
         #     self.look_back = 18
         # elif stock_id in [701]:
         #     self.look_back = 13
-        # elif stock_id in [713]:
-        #     self.look_back = 6
+        elif stock_id in [690, 692, 701, 713]:
+            self.look_back = 20
         print('set look back to {} for stock {}'.format(self.look_back, stock_id))
 
 
@@ -137,7 +136,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # dataset_high = query_high_price(self.history, int(stock_id))
         # dataset_low = query_low_price(self.history, int(stock_id))
         # dataset_avg = query_avg_price(self.history, int(stock_id))
-        # dataset_vol = query_volume(self.history, int(stock_id))
+        dataset_vol = query_volume(self.history, int(stock_id))
 
         # Transforming time series dataset into supervised dataset
         supervised_close = series_to_supervised(dataset_close, n_in=self.look_back, n_out=self.look_forward)
@@ -145,7 +144,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # supervised_high = series_to_supervised(dataset_high, n_in=self.look_back, n_out=self.look_forward)
         # supervised_low = series_to_supervised(dataset_low, n_in=self.look_back, n_out=self.look_forward)
         # supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=self.look_forward)
-        # supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
+        supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
 
         # Normalize dataset if needed
         self.ori_feature_close = copy.deepcopy(supervised_close)
@@ -156,40 +155,13 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # self.feature_avg = normalize_windows(supervised_avg)
         # self.feature_vol = normalize_windows(supervised_vol)
         # Feature Scaling for volume
-        # from sklearn.preprocessing import MinMaxScaler
-        # sc = MinMaxScaler(feature_range=(0, 1))
-        # self.feature_vol = sc.fit_transform(supervised_vol)
+        from sklearn.preprocessing import MinMaxScaler
+        sc = MinMaxScaler(feature_range=(0, 1))
+        self.feature_vol = sc.fit_transform(supervised_vol)
 
     def __data(self, stock_id, ndays):
         self.__prepare_data(stock_id)
-        # self._set_look_back(stock_id)
 
-        # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
-        # dataset = query_close_price(self.history, stock_id)
-        # dataset_open = query_open_price(self.history, int(stock_id))
-        # dataset_high = query_high_price(self.history, int(stock_id))
-        # dataset_low = query_low_price(self.history, int(stock_id))
-        # dataset_avg = query_avg_price(self.history, int(stock_id))
-        # dataset_vol = query_volume(self.history, int(stock_id))
-        # Transforming time series dataset into supervised dataset
-        # supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=self.look_forward)
-        # supervised_open = series_to_supervised(dataset_open, n_in=self.look_back, n_out=self.look_forward)
-        # supervised_high = series_to_supervised(dataset_high, n_in=self.look_back, n_out=self.look_forward)
-        # supervised_low = series_to_supervised(dataset_low, n_in=self.look_back, n_out=self.look_forward)
-        # supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=self.look_forward)
-        # supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
-        # Normalize dataset if needed
-        # ori_Xy = copy.deepcopy(supervised)
-        # Xy = normalize_windows(supervised)
-        # feature_open = normalize_windows(supervised_open)
-        # feature_high = normalize_windows(supervised_high)
-        # feature_low = normalize_windows(supervised_low)
-        # feature_avg = normalize_windows(supervised_avg)
-        # # feature_vol = normalize_windows(supervised_vol)
-        # # Feature Scaling for volume
-        # from sklearn.preprocessing import MinMaxScaler
-        # sc = MinMaxScaler(feature_range=(0, 1))
-        # feature_vol = sc.fit_transform(supervised_vol)
         # Converting array of list to numpy array
         ori_Xy = np.array(self.ori_feature_close)
         Xy = np.array(self.feature_close)
@@ -201,19 +173,19 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # feature_high_train, feature_high_test, _, _ = train_test_split(self.feature_high, test_samples=ndays, num_forecasts=5)
         # feature_low_train, feature_low_test, _, _ = train_test_split(self.feature_low, test_samples=ndays, num_forecasts=5)
         # feature_avg_train, feature_avg_test, _, _ = train_test_split(self.feature_avg, test_samples=ndays, num_forecasts=5)
-        # feature_vol_train, feature_vol_test, _, _ = train_test_split(self.feature_vol, test_samples=ndays, num_forecasts=5)
+        feature_vol_train, feature_vol_test, _, _ = train_test_split(self.feature_vol, test_samples=ndays, num_forecasts=5)
 
         # X_train = np.append(X_train, feature_open_train, axis=2)
         # X_train = np.append(X_train, feature_high_train, axis=2)
         # X_train = np.append(X_train, feature_low_train, axis=2)
         # X_train = np.append(X_train, feature_avg_train, axis=2)
-        # X_train = np.append(X_train, feature_vol_train, axis=2)
+        X_train = np.append(X_train, feature_vol_train, axis=2)
 
         # X_test = np.append(X_test, feature_open_test, axis=2)
         # X_test = np.append(X_test, feature_high_test, axis=2)
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
-        # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return X_train, y_train, X_test, y_test
 
@@ -224,34 +196,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
 
     def data_for_prediction(self, stock_id):
         self.__prepare_data(stock_id)
-        # self._set_look_back(stock_id)
 
-        # # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
-        # dataset = query_close_price(self.history, stock_id)
-        # dataset_open = query_open_price(self.history, int(stock_id))
-        # dataset_high = query_high_price(self.history, int(stock_id))
-        # dataset_low = query_low_price(self.history, int(stock_id))
-        # dataset_avg = query_avg_price(self.history, int(stock_id))
-        # dataset_vol = query_volume(self.history, int(stock_id))
-        # # Transforming time series dataset into supervised dataset
-        # supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=0)
-        # supervised_open = series_to_supervised(dataset_open, n_in=self.look_back, n_out=0)
-        # supervised_high = series_to_supervised(dataset_high, n_in=self.look_back, n_out=0)
-        # supervised_low = series_to_supervised(dataset_low, n_in=self.look_back, n_out=0)
-        # supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=0)
-        # supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=0)
-        # # Normalize dataset if needed
-        # ori_Xy = copy.deepcopy(supervised)
-        # Xy = normalize_windows(supervised)
-        # feature_open = normalize_windows(supervised_open)
-        # feature_high = normalize_windows(supervised_high)
-        # feature_low = normalize_windows(supervised_low)
-        # feature_avg = normalize_windows(supervised_avg)
-        # # feature_vol = normalize_windows(supervised_vol)
-        # # Feature Scaling for volume
-        # from sklearn.preprocessing import MinMaxScaler
-        # sc = MinMaxScaler(feature_range=(0, 1))
-        # feature_vol = sc.fit_transform(supervised_vol)
         # Converting array of list to numpy array
         ori_Xy = np.array(self.ori_feature_close)
         Xy = np.array(self.feature_close)
@@ -263,13 +208,13 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # feature_high_test = predict_split(self.feature_high)
         # feature_low_test = predict_split(self.feature_low)
         # feature_avg_test = predict_split(self.feature_avg)
-        # feature_vol_test = predict_split(self.feature_vol)
+        feature_vol_test = predict_split(self.feature_vol)
 
         # X_test = np.append(X_test, feature_open_test, axis=2)
         # X_test = np.append(X_test, feature_high_test, axis=2)
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
-        # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return self.X_ori_test, X_test
 
