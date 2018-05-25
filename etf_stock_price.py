@@ -37,7 +37,7 @@ def predict():
 
         pred = {}
 
-        loader = DataForStatelessModel(int(stock_id))
+        loader = DataForStatelessModelMoreFeatures(int(stock_id))
         # Querying the last day of stock price
         last_price = loader.data_last_price(int(stock_id))
         X_ori_test, X_test = loader.data_for_prediction(int(stock_id))
@@ -81,7 +81,7 @@ def predict():
 def train():
     for stock_id in stock_ids:
         print('Training stock {}...'.format(stock_id))
-        cmd = 'python stateless_training.py {} {}'.format(stock_id, get_model_name(stock_id))
+        cmd = 'python stateless_training_more_features.py {} {}'.format(stock_id, get_model_name(stock_id))
         fhandle = open('etf_stock_price_train_{}.txt'.format(stock_id), 'w')
         proc = subprocess.Popen(
             cmd,
