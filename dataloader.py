@@ -30,21 +30,21 @@ class DataLoader(abc.ABC):
     def _set_look_back(self, stock_id):
         # keep 51, 52, 53, 6208, 692 default
         self.look_back = 60
-        if stock_id in [57, 58]:
-            self.look_back = 110
-        elif stock_id in [50, 6203, 6204]:
-            self.look_back = 100
-        elif stock_id in [54, 59]:
-            self.look_back = 90
-        elif stock_id in [55]:
-            self.look_back = 80
-        elif stock_id in [56, 6201]:
-            self.look_back = 70
+        # if stock_id in [57, 58]:
+        #     self.look_back = 110
+        # elif stock_id in [50, 6203, 6204]:
+        #     self.look_back = 100
+        # elif stock_id in [54, 59]:
+        #     self.look_back = 90
+        # elif stock_id in [55]:
+        #     self.look_back = 80
+        # elif stock_id in [56, 6201]:
+        #     self.look_back = 70
         # elif stock_id in [690]:
         #     self.look_back = 18
         # elif stock_id in [701]:
         #     self.look_back = 13
-        elif stock_id in [690, 692, 701, 713]:
+        if stock_id in [690, 692, 701, 713]:
             self.look_back = 20
         print('set look back to {} for stock {}'.format(self.look_back, stock_id))
 
