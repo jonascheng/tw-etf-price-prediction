@@ -153,11 +153,11 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # self.feature_high = normalize_windows(supervised_high)
         # self.feature_low = normalize_windows(supervised_low)
         # self.feature_avg = normalize_windows(supervised_avg)
-        # self.feature_vol = normalize_windows(supervised_vol)
+        self.feature_vol = normalize_windows(supervised_vol)/100
         # Feature Scaling for volume
-        from sklearn.preprocessing import MinMaxScaler
-        sc = MinMaxScaler(feature_range=(0, 1))
-        self.feature_vol = sc.fit_transform(supervised_vol)
+        # from sklearn.preprocessing import MinMaxScaler
+        # sc = MinMaxScaler(feature_range=(0, 1))
+        # self.feature_vol = sc.fit_transform(supervised_vol)
 
     def __data(self, stock_id, ndays):
         self.__prepare_data(stock_id)
