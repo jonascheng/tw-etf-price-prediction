@@ -129,7 +129,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
 
     def __prepare_data(self, stock_id):
         self._set_look_back(stock_id)
-
+        print('look_back {}, look_forward {}'.format(self.look_back, self.look_forward))
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset_close = query_close_price(self.history, int(stock_id))
         # dataset_open = query_open_price(self.history, int(stock_id))
@@ -195,6 +195,9 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         return dataset[-1:]
 
     def data_for_prediction(self, stock_id):
+        # tweek lookforard to 0 for prediction
+        self.look_forward = 0
+
         self.__prepare_data(stock_id)
 
         # Converting array of list to numpy array
