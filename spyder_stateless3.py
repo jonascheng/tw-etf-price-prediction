@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-stock_id = '0050'
+stock_id = '00713'
 
 ###########################################################
 import settings
@@ -53,7 +53,8 @@ from util import series_to_supervised
 supervised = series_to_supervised(dataset, n_in=50, n_out=5)
 supervised_open = series_to_supervised(dataset_open, n_in=50, n_out=5)
 supervised_avg = series_to_supervised(dataset_avg, n_in=50, n_out=5)
-supervised_vol = series_to_supervised(scaled_dataset_vol, n_in=50, n_out=5)
+supervised_vol = series_to_supervised(dataset_vol, n_in=50, n_out=5)
+supervised_scaled_vol = series_to_supervised(scaled_dataset_vol, n_in=50, n_out=5)
 
 ###########################################################
 # Visualising the stock price
@@ -75,19 +76,34 @@ ori_Xy = copy.deepcopy(supervised)
 Xy = normalize_windows(supervised)
 F1 = normalize_windows(supervised_open)
 F2 = normalize_windows(supervised_avg)
-F3 = normalize_windows(supervised_vol)
+F3 = normalize_windows(supervised_vol)/100
+F4 = normalize_windows(supervised_scaled_vol)/100
+
+from sklearn.preprocessing import MinMaxScaler
+sc = MinMaxScaler(feature_range=(-0.05, 0.05))
+F5 = sc.fit_transform(supervised_vol)
 
 ###########################################################
 # Visualising the stock price
 from util import plot_stock_price
 plot_stock_price(Xy[0].transpose())
 
+index = 0
+#plot_stock_price(ori_Xy[index])
+plot_stock_price(Xy[index])
+plot_stock_price(F3[index])
+plot_stock_price(F4[index])
+plot_stock_price(F5[index])
+
 real_price = np.concatenate((dataset[0], np.array(dataset)[1:, -1]))
 real_price = np.expand_dims(real_price, axis=1)
 normalized_price = np.concatenate((Xy[0], np.array(Xy)[1:, -1]))
 normalized_price = np.expand_dims(normalized_price, axis=1)
+normalized_vol = np.concatenate((F3[0], np.array(F3)[1:, -1]))
+normalized_vol = np.expand_dims(normalized_vol, axis=1)
 plot_stock_price(real_price, last_ndays=240)
 plot_stock_price(normalized_price, last_ndays=240)
+plot_stock_price(F3[0], last_ndays=240)
 
 ###########################################################
 # train_test_split
