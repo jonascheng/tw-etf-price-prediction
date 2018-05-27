@@ -331,6 +331,8 @@ def normalize_windows(series):
     assert type(series[0]) is np.ndarray, 'unexpected type of series: {}'.format(type(series[0]))
     df = pd.DataFrame(series)
     df = df.div(df[0], axis=0) - 1
+    # replace NaN and Inf with 1
+    df = df.fillna(0).replace(np.inf, 0)
     return df.values
 
 
