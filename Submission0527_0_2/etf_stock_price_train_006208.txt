@@ -1,0 +1,1667 @@
+2018-05-26 20:50:18.596687: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:897] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2018-05-26 20:50:18.597090: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1356] Found device 0 with properties: 
+name: Tesla K80 major: 3 minor: 7 memoryClockRate(GHz): 0.8235
+pciBusID: 0000:00:04.0
+totalMemory: 11.17GiB freeMemory: 11.09GiB
+2018-05-26 20:50:18.597113: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1435] Adding visible gpu devices: 0
+2018-05-26 20:50:18.862286: I tensorflow/core/common_runtime/gpu/gpu_device.cc:923] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-05-26 20:50:18.862344: I tensorflow/core/common_runtime/gpu/gpu_device.cc:929]      0 
+2018-05-26 20:50:18.862354: I tensorflow/core/common_runtime/gpu/gpu_device.cc:942] 0:   N 
+2018-05-26 20:50:18.862653: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1053] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10748 MB memory) -> physical GPU (device: 0, name: Tesla K80, pci bus id: 0000:00:04.0, compute capability: 3.7)
+start training process for...
+stock id: 006208
+output model name: etf_006208_model.h5
+>>> Imports:
+#coding=utf-8
+
+try:
+    import numpy as np
+except:
+    pass
+
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass
+
+try:
+    import pandas as pd
+except:
+    pass
+
+try:
+    from argparse import ArgumentParser
+except:
+    pass
+
+try:
+    from hyperopt import Trials, tpe
+except:
+    pass
+
+try:
+    from hyperas import optim
+except:
+    pass
+
+try:
+    import dataloader
+except:
+    pass
+
+try:
+    from util import visualize_model
+except:
+    pass
+
+try:
+    import dataloader
+except:
+    pass
+
+try:
+    from keras.callbacks import EarlyStopping
+except:
+    pass
+
+try:
+    from hyperopt import STATUS_OK
+except:
+    pass
+
+try:
+    from hyperas.distributions import choice
+except:
+    pass
+
+try:
+    from model import create_stateless_lstm_model
+except:
+    pass
+
+try:
+    from util import SavePredictionCallback
+except:
+    pass
+
+>>> Hyperas search space:
+
+def get_space():
+    return {
+        'layers': hp.choice('layers', [4, 5]),
+        'output_dim': hp.choice('output_dim', [128, 256]),
+    }
+
+>>> Data
+  1: 
+  2: """
+  3: Data providing function:
+  4: 
+  5: Make sure to have every relevant import statement included here and return data as
+  6: used in model function below. This function is separated from model() so that hyperopt
+  7: won't reload data for each evaluation run.
+  8: """
+  9: # workaround to dynamically change stock_id
+ 10: with open('.processing_stock_id', 'r') as file:
+ 11:     stock_id = file.read()
+ 12: print('Loading dataset for {}'.format(stock_id))
+ 13: import dataloader
+ 14: loader = dataloader.DataForStatelessModelMoreFeatures(int(stock_id))
+ 15: if stock_id in ['00690', '00692', '00701', '00713']:
+ 16:     ndays = 30
+ 17: else:
+ 18:     ndays = 240
+ 19: X_train, y_train, X_test, y_test = loader.data_last_ndays_for_test(int(stock_id), ndays=ndays)
+ 20: 
+ 21: 
+ 22: 
+>>> Resulting replaced keras model:
+
+   1: def keras_fmin_fnct(space):
+   2: 
+   3:     """
+   4:     Model providing function:
+   5: 
+   6:     Create Keras model with double curly brackets dropped-in as needed.
+   7:     Return value has to be a valid python dictionary with two customary keys:
+   8:         - loss: Specify a numeric evaluation metric to be minimized
+   9:         - status: Just use STATUS_OK and see hyperopt documentation if not feasible
+  10:     The last one is optional, though recommended, namely:
+  11:         - model: specify the model just created so that we can later use it again.
+  12:     """
+  13:     # Importing the Keras libraries and packages
+  14:     # Importing the hyperopt libraries and packages
+  15: 
+  16: 
+  17:     nb_epoch = 200
+  18:     batch_size = 128
+  19:     layers = space['layers']
+  20:     output_dim = space['output_dim']
+  21:     optimizer = 'adam'
+  22:     dropout = 0.2
+  23: 
+  24:     regressor = create_stateless_lstm_model(
+  25:         X_train,
+  26:         y_train,
+  27:         layers=layers,
+  28:         output_dim=output_dim,
+  29:         optimizer=optimizer,
+  30:         dropout=dropout)
+  31: 
+  32:     # Defining early stopping criteria
+  33:     earlyStopping = EarlyStopping(monitor='loss', min_delta=0.000001, patience=25, verbose=1, mode='min')
+  34: 
+  35:     # Defining intermediate prediction result
+  36:     predicted_prefix = 'stateless_mf_etf_predicted_epoch{}_batch{}_layers{}_output{}_dropout{}_opt{}'.format(nb_epoch, batch_size, layers, output_dim, dropout, optimizer)
+  37:     savePrediction = SavePredictionCallback(predicted_prefix, X_test)
+  38: 
+  39:     # Collecting callback list
+  40:     callbacks_list = [earlyStopping, savePrediction]
+  41: 
+  42:     # Fitting the RNN to the Training set
+  43:     real_price = y_test
+  44:     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
+  45:     regressor.fit(
+  46:         X_train,
+  47:         y_train,
+  48:         epochs=nb_epoch,
+  49:         batch_size=batch_size,
+  50:         # validation_split=0.5,
+  51:         # this would overwrite validation_split
+  52:         validation_data=(X_test, y_test),
+  53:         callbacks=callbacks_list,
+  54:         shuffle=True)
+  55: 
+  56:     # Evaluating the model
+  57:     score, mse = regressor.evaluate(X_test, y_test, batch_size=batch_size)
+  58:     print('Test score: {}, mse: {}'.format(score, mse))
+  59: 
+  60:     return {'loss': mse, 'status': STATUS_OK, 'model': regressor}
+  61: 
+Loading dataset for 006208
+historical data is loading from TBrain_Round2_DataSet_20180525/tetfp.csv
+set look back to 60 for stock 6208
+look_back 60, look_forward 5
+Creating stateless model with layers 5, output_dim 128, optimizer adam, dropout 0.2
+input_shape (60, 2), output 5
+Adding the first LSTM layers
+Adding additional LSTM layers 4
+Adding additional LSTM layers 3
+Adding additional LSTM layers 2
+Adding additional LSTM layers 1
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+lstm_1 (LSTM)                (None, 60, 128)           67072     
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 60, 128)           0         
+_________________________________________________________________
+lstm_2 (LSTM)                (None, 60, 128)           131584    
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 60, 128)           0         
+_________________________________________________________________
+lstm_3 (LSTM)                (None, 60, 128)           131584    
+_________________________________________________________________
+dropout_3 (Dropout)          (None, 60, 128)           0         
+_________________________________________________________________
+lstm_4 (LSTM)                (None, 60, 128)           131584    
+_________________________________________________________________
+dropout_4 (Dropout)          (None, 60, 128)           0         
+_________________________________________________________________
+lstm_5 (LSTM)                (None, 128)               131584    
+_________________________________________________________________
+dropout_5 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 5)                 645       
+_________________________________________________________________
+activation_1 (Activation)    (None, 5)                 0         
+=================================================================
+Total params: 594,053
+Trainable params: 594,053
+Non-trainable params: 0
+_________________________________________________________________
+None
+Train on 1018 samples, validate on 240 samples
+Epoch 1/200
+
+ 128/1018 [==>...........................] - ETA: 26s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 12s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 7s - loss: nan - mean_squared_error: nan 
+ 512/1018 [==============>...............] - ETA: 5s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 8s 7ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 2/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 3/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 4/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 5/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 6/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 7/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 8/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 9/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 10/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 11/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 12/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 13/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 14/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 15/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 16/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 17/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 18/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 19/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 20/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 21/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 22/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 23/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 24/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 25/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 00025: early stopping
+
+128/240 [===============>..............] - ETA: 0s
+240/240 [==============================] - 0s 965us/step
+Test score: nan, mse: nan
+Creating stateless model with layers 4, output_dim 128, optimizer adam, dropout 0.2
+input_shape (60, 2), output 5
+Adding the first LSTM layers
+Adding additional LSTM layers 3
+Adding additional LSTM layers 2
+Adding additional LSTM layers 1
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+lstm_6 (LSTM)                (None, 60, 128)           67072     
+_________________________________________________________________
+dropout_6 (Dropout)          (None, 60, 128)           0         
+_________________________________________________________________
+lstm_7 (LSTM)                (None, 60, 128)           131584    
+_________________________________________________________________
+dropout_7 (Dropout)          (None, 60, 128)           0         
+_________________________________________________________________
+lstm_8 (LSTM)                (None, 60, 128)           131584    
+_________________________________________________________________
+dropout_8 (Dropout)          (None, 60, 128)           0         
+_________________________________________________________________
+lstm_9 (LSTM)                (None, 128)               131584    
+_________________________________________________________________
+dropout_9 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_2 (Dense)              (None, 5)                 645       
+_________________________________________________________________
+activation_2 (Activation)    (None, 5)                 0         
+=================================================================
+Total params: 462,469
+Trainable params: 462,469
+Non-trainable params: 0
+_________________________________________________________________
+None
+Train on 1018 samples, validate on 240 samples
+Epoch 1/200
+
+ 128/1018 [==>...........................] - ETA: 19s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 9s - loss: nan - mean_squared_error: nan 
+ 384/1018 [==========>...................] - ETA: 5s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 6s 6ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 2/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 3/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 4/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 5/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 6/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 7/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 8/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 9/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 10/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 11/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 12/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 13/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 14/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 15/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 16/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 17/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 18/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 19/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 20/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 21/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 22/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 23/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 24/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 25/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 00025: early stopping
+
+128/240 [===============>..............] - ETA: 0s
+240/240 [==============================] - 0s 754us/step
+Test score: nan, mse: nan
+Creating stateless model with layers 4, output_dim 256, optimizer adam, dropout 0.2
+input_shape (60, 2), output 5
+Adding the first LSTM layers
+Adding additional LSTM layers 3
+Adding additional LSTM layers 2
+Adding additional LSTM layers 1
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+lstm_10 (LSTM)               (None, 60, 256)           265216    
+_________________________________________________________________
+dropout_10 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_11 (LSTM)               (None, 60, 256)           525312    
+_________________________________________________________________
+dropout_11 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_12 (LSTM)               (None, 60, 256)           525312    
+_________________________________________________________________
+dropout_12 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_13 (LSTM)               (None, 256)               525312    
+_________________________________________________________________
+dropout_13 (Dropout)         (None, 256)               0         
+_________________________________________________________________
+dense_3 (Dense)              (None, 5)                 1285      
+_________________________________________________________________
+activation_3 (Activation)    (None, 5)                 0         
+=================================================================
+Total params: 1,842,437
+Trainable params: 1,842,437
+Non-trainable params: 0
+_________________________________________________________________
+None
+Train on 1018 samples, validate on 240 samples
+Epoch 1/200
+
+ 128/1018 [==>...........................] - ETA: 22s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 10s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 6s - loss: nan - mean_squared_error: nan 
+ 512/1018 [==============>...............] - ETA: 4s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 7s 6ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 2/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 3/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 4/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 5/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 6/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 7/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 8/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 9/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 10/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 11/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 12/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 13/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 14/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 15/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 16/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 17/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 18/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 19/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 20/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 21/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 22/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 23/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 24/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 25/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 00025: early stopping
+
+128/240 [===============>..............] - ETA: 0s
+240/240 [==============================] - 0s 945us/step
+Test score: nan, mse: nan
+Creating stateless model with layers 5, output_dim 256, optimizer adam, dropout 0.2
+input_shape (60, 2), output 5
+Adding the first LSTM layers
+Adding additional LSTM layers 4
+Adding additional LSTM layers 3
+Adding additional LSTM layers 2
+Adding additional LSTM layers 1
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+lstm_14 (LSTM)               (None, 60, 256)           265216    
+_________________________________________________________________
+dropout_14 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_15 (LSTM)               (None, 60, 256)           525312    
+_________________________________________________________________
+dropout_15 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_16 (LSTM)               (None, 60, 256)           525312    
+_________________________________________________________________
+dropout_16 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_17 (LSTM)               (None, 60, 256)           525312    
+_________________________________________________________________
+dropout_17 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_18 (LSTM)               (None, 256)               525312    
+_________________________________________________________________
+dropout_18 (Dropout)         (None, 256)               0         
+_________________________________________________________________
+dense_4 (Dense)              (None, 5)                 1285      
+_________________________________________________________________
+activation_4 (Activation)    (None, 5)                 0         
+=================================================================
+Total params: 2,367,749
+Trainable params: 2,367,749
+Non-trainable params: 0
+_________________________________________________________________
+None
+Train on 1018 samples, validate on 240 samples
+Epoch 1/200
+
+ 128/1018 [==>...........................] - ETA: 30s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 14s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 8s - loss: nan - mean_squared_error: nan 
+ 512/1018 [==============>...............] - ETA: 5s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 1s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 9s 9ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 2/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 3/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 4/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 5/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 6/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 7/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 8/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 9/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 10/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 11/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 12/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 13/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 14/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 15/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 16/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 17/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 18/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 19/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 20/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 21/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 22/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 23/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 24/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 25/200
+
+ 128/1018 [==>...........................] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 4s 4ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 00025: early stopping
+
+128/240 [===============>..............] - ETA: 0s
+240/240 [==============================] - 0s 1ms/step
+Test score: nan, mse: nan
+Creating stateless model with layers 4, output_dim 256, optimizer adam, dropout 0.2
+input_shape (60, 2), output 5
+Adding the first LSTM layers
+Adding additional LSTM layers 3
+Adding additional LSTM layers 2
+Adding additional LSTM layers 1
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+lstm_19 (LSTM)               (None, 60, 256)           265216    
+_________________________________________________________________
+dropout_19 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_20 (LSTM)               (None, 60, 256)           525312    
+_________________________________________________________________
+dropout_20 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_21 (LSTM)               (None, 60, 256)           525312    
+_________________________________________________________________
+dropout_21 (Dropout)         (None, 60, 256)           0         
+_________________________________________________________________
+lstm_22 (LSTM)               (None, 256)               525312    
+_________________________________________________________________
+dropout_22 (Dropout)         (None, 256)               0         
+_________________________________________________________________
+dense_5 (Dense)              (None, 5)                 1285      
+_________________________________________________________________
+activation_5 (Activation)    (None, 5)                 0         
+=================================================================
+Total params: 1,842,437
+Trainable params: 1,842,437
+Non-trainable params: 0
+_________________________________________________________________
+None
+Train on 1018 samples, validate on 240 samples
+Epoch 1/200
+
+ 128/1018 [==>...........................] - ETA: 29s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 13s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 8s - loss: nan - mean_squared_error: nan 
+ 512/1018 [==============>...............] - ETA: 5s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 3s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 8s 8ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 2/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 3/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 4/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 5/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 6/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 7/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 8/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 9/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 10/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 11/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 12/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 13/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 14/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 15/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 16/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 17/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 18/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 19/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 20/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 21/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 22/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 23/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 24/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 25/200
+
+ 128/1018 [==>...........................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 256/1018 [======>.......................] - ETA: 2s - loss: nan - mean_squared_error: nan
+ 384/1018 [==========>...................] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 512/1018 [==============>...............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 640/1018 [=================>............] - ETA: 1s - loss: nan - mean_squared_error: nan
+ 768/1018 [=====================>........] - ETA: 0s - loss: nan - mean_squared_error: nan
+ 896/1018 [=========================>....] - ETA: 0s - loss: nan - mean_squared_error: nan
+1018/1018 [==============================] - 3s 3ms/step - loss: nan - mean_squared_error: nan - val_loss: nan - val_mean_squared_error: nan
+Epoch 00025: early stopping
+
+128/240 [===============>..............] - ETA: 0s
+240/240 [==============================] - 0s 957us/step
+/usr/bin/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:34: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+Test score: nan, mse: nan
+Traceback (most recent call last):
+  File "stateless_training_more_features.py", line 181, in <module>
+    start_training(args.stock_id, args.trained_model)
+  File "stateless_training_more_features.py", line 155, in start_training
+    trials=Trials())
+  File "/usr/bin/anaconda3/lib/python3.6/site-packages/hyperas/optim.py", line 67, in minimize
+    verbose=verbose)
+  File "/usr/bin/anaconda3/lib/python3.6/site-packages/hyperas/optim.py", line 133, in base_minimizer
+    return_argmin=True),
+  File "/usr/bin/anaconda3/lib/python3.6/site-packages/hyperopt/fmin.py", line 307, in fmin
+    return_argmin=return_argmin,
+  File "/usr/bin/anaconda3/lib/python3.6/site-packages/hyperopt/base.py", line 635, in fmin
+    return_argmin=return_argmin)
+  File "/usr/bin/anaconda3/lib/python3.6/site-packages/hyperopt/fmin.py", line 322, in fmin
+    return trials.argmin
+  File "/usr/bin/anaconda3/lib/python3.6/site-packages/hyperopt/base.py", line 590, in argmin
+    best_trial = self.best_trial
+  File "/usr/bin/anaconda3/lib/python3.6/site-packages/hyperopt/base.py", line 584, in best_trial
+    assert not np.any(np.isnan(losses))
+AssertionError
