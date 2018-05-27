@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-stock_id = '00713'
+stock_id = '006201'
 
 ###########################################################
 import settings
@@ -30,12 +30,22 @@ dataset = query_close_price(history, int(stock_id))
 dataset_open = query_open_price(history, int(stock_id))
 dataset_avg = query_avg_price(history, int(stock_id))
 dataset_vol = query_volume(history, int(stock_id))
+dataset_close_mul_vol = dataset * dataset_vol
 
 # Feature Scaling
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 sc = MinMaxScaler(feature_range = (0, 1))
 scaled_dataset_vol = sc.fit_transform(dataset_vol)
+
+sc = StandardScaler()
+scaled_dataset_vol2 = sc.fit_transform(dataset_vol)
+
+df = pd.DataFrame(dataset).diff().fillna(0)
+df[df > 0] = 1
+df[df < 0] = -1
+dataset_ud = df.values
+scaled_dataset_close_mul_vol = dataset * ((dataset_ud*scaled_dataset_vol2))
 
 ###########################################################
 # Visualising the stock price
@@ -45,7 +55,10 @@ plot_stock_price(dataset, last_ndays=last_ndays)
 plot_stock_price(dataset_open, last_ndays=last_ndays)
 plot_stock_price(dataset_avg, last_ndays=last_ndays)
 plot_stock_price(dataset_vol, last_ndays=last_ndays)
+plot_stock_price(dataset_close_mul_vol, last_ndays=last_ndays)
+plot_stock_price(scaled_dataset_close_mul_vol, last_ndays=last_ndays)
 plot_stock_price(scaled_dataset_vol, last_ndays=last_ndays)
+plot_stock_price(scaled_dataset_vol2, last_ndays=last_ndays)
 
 ###########################################################
 # series_to_supervised
@@ -55,6 +68,7 @@ supervised_open = series_to_supervised(dataset_open, n_in=50, n_out=5)
 supervised_avg = series_to_supervised(dataset_avg, n_in=50, n_out=5)
 supervised_vol = series_to_supervised(dataset_vol, n_in=50, n_out=5)
 supervised_scaled_vol = series_to_supervised(scaled_dataset_vol, n_in=50, n_out=5)
+supervised_scaled_vol2 = series_to_supervised(scaled_dataset_vol2, n_in=50, n_out=5)
 
 ###########################################################
 # Visualising the stock price
@@ -76,24 +90,29 @@ ori_Xy = copy.deepcopy(supervised)
 Xy = normalize_windows(supervised)
 F1 = normalize_windows(supervised_open)
 F2 = normalize_windows(supervised_avg)
-F3 = normalize_windows(supervised_vol)/100
-F4 = normalize_windows(supervised_scaled_vol)/100
+F3 = normalize_windows(supervised_vol)
+F4 = normalize_windows(supervised_scaled_vol)
+F6 = normalize_windows(supervised_scaled_vol2)
 
 from sklearn.preprocessing import MinMaxScaler
-sc = MinMaxScaler(feature_range=(-0.05, 0.05))
+sc = MinMaxScaler(feature_range=(-0.07, 0.07))
 F5 = sc.fit_transform(supervised_vol)
+
+F7 = Xy * (1+F4)
 
 ###########################################################
 # Visualising the stock price
 from util import plot_stock_price
 plot_stock_price(Xy[0].transpose())
 
-index = 0
+index = 60
 #plot_stock_price(ori_Xy[index])
 plot_stock_price(Xy[index])
 plot_stock_price(F3[index])
 plot_stock_price(F4[index])
+plot_stock_price(F6[index])
 plot_stock_price(F5[index])
+plot_stock_price(F7[index])
 
 real_price = np.concatenate((dataset[0], np.array(dataset)[1:, -1]))
 real_price = np.expand_dims(real_price, axis=1)
