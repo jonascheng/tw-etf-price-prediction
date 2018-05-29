@@ -298,6 +298,29 @@ def plot_real_predicted_stock_price(real_price, predicted_price, title, first_nd
         plt.show()
 
 
+def moving_average(series, window=5):
+    """
+    Calculating moving average of a time series dataset.
+    Arguments:
+        series: Sequence of observations as a NumPy array.
+        window: Size of the moving window.
+                This is the number of observations used for calculating the statistic.
+    Returns:
+        Moving average of stock price as a NumPy array.
+    """
+    assert type(series) is np.ndarray, 'unexpected type of series: {}'.format(type(series))
+
+    dataset_ma = pd.DataFrame(series).rolling(window=window).mean().values
+
+    # calculating first N=window values instead of NaN
+    sum = 0
+    for i in range(window):
+        sum += series[i]
+        dataset_ma[i] = sum/(i+1)
+
+    return dataset_ma
+
+
 def series_to_supervised(series, n_in, n_out):
     """
     Frame a time series as a supervised learning dataset.

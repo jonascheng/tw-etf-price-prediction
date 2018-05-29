@@ -14,7 +14,7 @@ from util import load_csv, load_weighted_csv
 from util import series_to_supervised, normalize_windows, train_test_split, predict_split
 from util import query_close_price, query_open_price, query_volume, query_high_price, query_low_price
 from util import query_weighted_open_price, query_weighted_close_price, query_weighted_high_price, query_weighted_low_price, query_weighted_avg_price
-from util import query_avg_price
+from util import query_avg_price, moving_average
 
 
 class DataLoader(abc.ABC):
@@ -132,28 +132,30 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         print('look_back {}, look_forward {}'.format(self.look_back, self.look_forward))
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset_close = query_close_price(self.history, int(stock_id))
+        dataset_close_ma = moving_average(dataset_close)
         # dataset_open = query_open_price(self.history, int(stock_id))
         # dataset_high = query_high_price(self.history, int(stock_id))
         # dataset_low = query_low_price(self.history, int(stock_id))
         # dataset_avg = query_avg_price(self.history, int(stock_id))
-        dataset_vol = query_volume(self.history, int(stock_id))
-
+        # dataset_vol = query_volume(self.history, int(stock_id))
         # Transforming time series dataset into supervised dataset
         supervised_close = series_to_supervised(dataset_close, n_in=self.look_back, n_out=self.look_forward)
+        supervised_close_ma = series_to_supervised(dataset_close_ma, n_in=self.look_back, n_out=self.look_forward)
         # supervised_open = series_to_supervised(dataset_open, n_in=self.look_back, n_out=self.look_forward)
         # supervised_high = series_to_supervised(dataset_high, n_in=self.look_back, n_out=self.look_forward)
         # supervised_low = series_to_supervised(dataset_low, n_in=self.look_back, n_out=self.look_forward)
         # supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=self.look_forward)
-        supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
+        # supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
 
         # Normalize dataset if needed
         self.ori_feature_close = copy.deepcopy(supervised_close)
         self.feature_close = normalize_windows(supervised_close)
+        self.feature_close_ma = normalize_windows(supervised_close_ma)
         # self.feature_open = normalize_windows(supervised_open)
         # self.feature_high = normalize_windows(supervised_high)
         # self.feature_low = normalize_windows(supervised_low)
         # self.feature_avg = normalize_windows(supervised_avg)
-        self.feature_vol = normalize_windows(supervised_vol)/100
+        # self.feature_vol = normalize_windows(supervised_vol)/100
         # Feature Scaling for volume
         # from sklearn.preprocessing import MinMaxScaler
         # sc = MinMaxScaler(feature_range=(0, 1))
@@ -169,23 +171,26 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=self.look_forward)
         X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=self.look_forward)
         # Adding more features
+        feature_close_ma_train, feature_close_ma_test, _, _ = train_test_split(self.feature_close_ma, test_samples=ndays, num_forecasts=5)
         # feature_open_train, feature_open_test, _, _ = train_test_split(self.feature_open, test_samples=ndays, num_forecasts=5)
         # feature_high_train, feature_high_test, _, _ = train_test_split(self.feature_high, test_samples=ndays, num_forecasts=5)
         # feature_low_train, feature_low_test, _, _ = train_test_split(self.feature_low, test_samples=ndays, num_forecasts=5)
         # feature_avg_train, feature_avg_test, _, _ = train_test_split(self.feature_avg, test_samples=ndays, num_forecasts=5)
-        feature_vol_train, feature_vol_test, _, _ = train_test_split(self.feature_vol, test_samples=ndays, num_forecasts=5)
+        # feature_vol_train, feature_vol_test, _, _ = train_test_split(self.feature_vol, test_samples=ndays, num_forecasts=5)
 
+        X_train = np.append(X_train, feature_close_ma_train, axis=2)
         # X_train = np.append(X_train, feature_open_train, axis=2)
         # X_train = np.append(X_train, feature_high_train, axis=2)
         # X_train = np.append(X_train, feature_low_train, axis=2)
         # X_train = np.append(X_train, feature_avg_train, axis=2)
-        X_train = np.append(X_train, feature_vol_train, axis=2)
+        # X_train = np.append(X_train, feature_vol_train, axis=2)
 
+        X_test = np.append(X_test, feature_close_ma_test, axis=2)
         # X_test = np.append(X_test, feature_open_test, axis=2)
         # X_test = np.append(X_test, feature_high_test, axis=2)
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
-        X_test = np.append(X_test, feature_vol_test, axis=2)
+        # X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return X_train, y_train, X_test, y_test
 
@@ -207,17 +212,19 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         self.X_ori_test = predict_split(ori_Xy)
         X_test = predict_split(Xy)
         # Adding more features
+        feature_close_ma_test = predict_split(self.feature_close_ma)
         # feature_open_test = predict_split(self.feature_open)
         # feature_high_test = predict_split(self.feature_high)
         # feature_low_test = predict_split(self.feature_low)
         # feature_avg_test = predict_split(self.feature_avg)
-        feature_vol_test = predict_split(self.feature_vol)
+        # feature_vol_test = predict_split(self.feature_vol)
 
+        X_test = np.append(X_test, feature_close_ma_test, axis=2)
         # X_test = np.append(X_test, feature_open_test, axis=2)
         # X_test = np.append(X_test, feature_high_test, axis=2)
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
-        X_test = np.append(X_test, feature_vol_test, axis=2)
+        # X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return self.X_ori_test, X_test
 
