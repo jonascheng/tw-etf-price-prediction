@@ -45,7 +45,7 @@ class DataLoader(abc.ABC):
         # elif stock_id in [701]:
         #     self.look_back = 13
         if stock_id in [690, 692, 701, 713]:
-            self.look_back = 20
+            self.look_back = 30
         print('set look back to {} for stock {}'.format(self.look_back, stock_id))
 
 
@@ -132,7 +132,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         print('look_back {}, look_forward {}'.format(self.look_back, self.look_forward))
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset_close = query_close_price(self.history, int(stock_id))
-        dataset_close_ma = moving_average(dataset_close)
+        dataset_close_ma = moving_average(dataset_close, self.look_back) # last 20
         # dataset_open = query_open_price(self.history, int(stock_id))
         # dataset_high = query_high_price(self.history, int(stock_id))
         # dataset_low = query_low_price(self.history, int(stock_id))
