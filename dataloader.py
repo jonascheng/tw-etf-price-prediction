@@ -132,7 +132,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         print('look_back {}, look_forward {}'.format(self.look_back, self.look_forward))
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset_close = query_close_price(self.history, int(stock_id))
-        dataset_close_ma = moving_average(dataset_close, self.look_back/2) # last 20
+        dataset_close_ma = moving_average(dataset_close, int(self.look_back/2)) # last 20
         # dataset_open = query_open_price(self.history, int(stock_id))
         # dataset_high = query_high_price(self.history, int(stock_id))
         # dataset_low = query_low_price(self.history, int(stock_id))
