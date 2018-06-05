@@ -23,27 +23,12 @@ class DataLoader(abc.ABC):
         # Importing the dataset
         filepath = '{}/tetfp.csv'.format(settings.DATASET_PATH)
         self.history = load_csv(filepath, stock_id)
-        # if self.stock_id is not None:
-        #     filepath = '{}/weighted_stock_price_index.csv'.format(settings.DATASET_PATH)
-        #     self.weighted_history = load_weighted_csv(filepath, self.history)
+        if self.stock_id is not None:
+            filepath = '{}/weighted_stock_price_index.csv'.format(settings.DATASET_PATH)
+            self.weighted_history = load_weighted_csv(filepath, self.history)
 
     def _set_look_back(self, stock_id):
-        # keep 51, 52, 53, 6208, 692 default
         self.look_back = 60
-        # if stock_id in [57, 58]:
-        #     self.look_back = 110
-        # elif stock_id in [50, 6203, 6204]:
-        #     self.look_back = 100
-        # elif stock_id in [54, 59]:
-        #     self.look_back = 90
-        # elif stock_id in [55]:
-        #     self.look_back = 80
-        # elif stock_id in [56, 6201]:
-        #     self.look_back = 70
-        # elif stock_id in [690]:
-        #     self.look_back = 18
-        # elif stock_id in [701]:
-        #     self.look_back = 13
         if stock_id in [690, 692, 701, 713]:
             self.look_back = 30
         print('set look back to {} for stock {}'.format(self.look_back, stock_id))
@@ -132,12 +117,14 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         print('look_back {}, look_forward {}'.format(self.look_back, self.look_forward))
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset_close = query_close_price(self.history, int(stock_id))
-        dataset_close_ma = moving_average(dataset_close, 20) # last 20
+        dataset_close_ma = moving_average(dataset_close, 5) # last 20
         # dataset_open = query_open_price(self.history, int(stock_id))
         # dataset_high = query_high_price(self.history, int(stock_id))
         # dataset_low = query_low_price(self.history, int(stock_id))
         # dataset_avg = query_avg_price(self.history, int(stock_id))
         # dataset_vol = query_volume(self.history, int(stock_id))
+        dataset_weighted_close = query_weighted_close_price(self.history)
+        dataset_weighted_close_ma = moving_average(dataset_weighted_close, 5) # last 20
         # Transforming time series dataset into supervised dataset
         supervised_close = series_to_supervised(dataset_close, n_in=self.look_back, n_out=self.look_forward)
         supervised_close_ma = series_to_supervised(dataset_close_ma, n_in=self.look_back, n_out=self.look_forward)
@@ -146,6 +133,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # supervised_low = series_to_supervised(dataset_low, n_in=self.look_back, n_out=self.look_forward)
         # supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=self.look_forward)
         # supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
+        supervised_weighted_close_ma = series_to_supervised(dataset_weighted_close_ma, n_in=self.look_back, n_out=self.look_forward)
 
         # Normalize dataset if needed
         self.ori_feature_close = copy.deepcopy(supervised_close)
@@ -160,6 +148,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # from sklearn.preprocessing import MinMaxScaler
         # sc = MinMaxScaler(feature_range=(0, 1))
         # self.feature_vol = sc.fit_transform(supervised_vol)
+        self.feature_weighted_close_ma = normalize_windows(supervised_weighted_close_ma)
 
     def __data(self, stock_id, ndays):
         self.__prepare_data(stock_id)
@@ -177,6 +166,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # feature_low_train, feature_low_test, _, _ = train_test_split(self.feature_low, test_samples=ndays, num_forecasts=5)
         # feature_avg_train, feature_avg_test, _, _ = train_test_split(self.feature_avg, test_samples=ndays, num_forecasts=5)
         # feature_vol_train, feature_vol_test, _, _ = train_test_split(self.feature_vol, test_samples=ndays, num_forecasts=5)
+        feature_weighted_close_ma_train, feature_weighted_close_ma_test, _, _ = train_test_split(self.feature_weighted_close_ma, test_samples=ndays, num_forecasts=5)
 
         X_train = np.append(X_train, feature_close_ma_train, axis=2)
         # X_train = np.append(X_train, feature_open_train, axis=2)
@@ -184,6 +174,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # X_train = np.append(X_train, feature_low_train, axis=2)
         # X_train = np.append(X_train, feature_avg_train, axis=2)
         # X_train = np.append(X_train, feature_vol_train, axis=2)
+        X_train = np.append(X_train, feature_weighted_close_ma_train, axis=2)
 
         X_test = np.append(X_test, feature_close_ma_test, axis=2)
         # X_test = np.append(X_test, feature_open_test, axis=2)
@@ -191,6 +182,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
         # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_weighted_close_ma_test, axis=2)
 
         return X_train, y_train, X_test, y_test
 
@@ -218,6 +210,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # feature_low_test = predict_split(self.feature_low)
         # feature_avg_test = predict_split(self.feature_avg)
         # feature_vol_test = predict_split(self.feature_vol)
+        feature_weighted_close_ma_test = predict_split(self.feature_weighted_close_ma)
 
         X_test = np.append(X_test, feature_close_ma_test, axis=2)
         # X_test = np.append(X_test, feature_open_test, axis=2)
@@ -225,6 +218,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
         # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_weighted_close_ma_test, axis=2)
 
         return self.X_ori_test, X_test
 
