@@ -11,13 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-stock_id = '00713'
+stock_id = '006201'
 
 ###########################################################
 import settings
 from util import load_csv
 filepath = '{}/tetfp.csv'.format(settings.DATASET_PATH)
-history = load_csv(filepath)
+history = load_csv(filepath, int(stock_id))
 
 # Extracting/Filtering the training dataset by stock_id
 # Taking 收盤價 as a predictor

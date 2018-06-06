@@ -78,7 +78,10 @@ def query_close_price(dataset, stock_id):
     assert type(dataset) is pd.DataFrame, 'unexpected type of series: {}'.format(type(dataset))
     # Extracting/Filtering the training dataset by stock_id
     column = dataset.columns[0]
-    dataset = dataset.loc[dataset[column] == stock_id]
+    vol_column = dataset.columns[7]
+    dataset = dataset.loc[dataset[column]==stock_id]
+    # Dropping row if volume == 0
+    dataset = dataset.loc[dataset[vol_column]>0]
     assert dataset.size > 0, 'dataset is empty while quering stock id {}'.format(stock_id)
     # Returning 收盤價
     return dataset.iloc[:, 6:7].values
