@@ -34,30 +34,32 @@ class DataLoader(abc.ABC):
         print('set look back to {} for stock {}'.format(self.look_back, stock_id))
 
 
-class DataForStatelessModel(DataLoader):
+class DataForCNNModel(DataLoader):
     # Tuned params and variables
     # number of sequence data
-    look_back = 50
+    look_back = 60
     look_forward = 5
 
     def __init__(self, stock_id):
-        super(DataForStatelessModel, self).__init__(stock_id)
+        super(DataForCNNModel, self).__init__(stock_id)
+
+    def __prepare_data(self, stock_id):
+        self._set_look_back(stock_id)
+        print('look_back {}, look_forward {}'.format(self.look_back, self.look_forward))
+        # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
+        dataset_close = query_close_price(self.history, int(stock_id))
+        # Feature Scaling for volume
+        self.sc = MinMaxScaler(feature_range=(0, 1))
+        dataset_close = self.sc.fit_transform(dataset_close)
+        # Transforming time series dataset into supervised dataset
+        self.supervised_close = series_to_supervised(dataset_close, n_in=self.look_back, n_out=self.look_forward)
 
     def __data(self, stock_id, ndays):
-        self._set_look_back(stock_id)
+        self.__prepare_data(stock_id)
 
-        # Taking 收盤價 as a predictor
-        dataset = query_close_price(self.history, stock_id)
-        # Transforming time series dataset into supervised dataset
-        supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=self.look_forward)
-        # Normalize dataset if needed
-        ori_Xy = copy.deepcopy(supervised)
-        Xy = normalize_windows(supervised)
         # Converting array of list to numpy array
-        ori_Xy = np.array(ori_Xy)
-        Xy = np.array(Xy)
+        Xy = np.array(self.supervised_close)
         # Spliting dataset into training and testing sets
-        self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=self.look_forward)
         X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=self.look_forward)
 
         return X_train, y_train, X_test, y_test
@@ -68,20 +70,14 @@ class DataForStatelessModel(DataLoader):
         return dataset[-1:]
 
     def data_for_prediction(self, stock_id):
-        self._set_look_back(stock_id)
+        # tweek lookforard to 0 for prediction
+        self.look_forward = 0
 
-        # Taking 收盤價 as a predictor
-        dataset = query_close_price(self.history, stock_id)
-        # Transforming time series dataset into supervised dataset
-        supervised = series_to_supervised(dataset, n_in=self.look_back, n_out=0)
-        # Normalize dataset if needed
-        ori_Xy = copy.deepcopy(supervised)
-        Xy = normalize_windows(supervised)
+        self.__prepare_data(stock_id)
+
         # Converting array of list to numpy array
-        ori_Xy = np.array(ori_Xy)
-        Xy = np.array(Xy)
+        Xy = np.array(self.supervised_close)
         # Spliting dataset into predicting sets
-        self.X_ori_test = predict_split(ori_Xy)
         X_test = predict_split(Xy)
 
         return self.X_ori_test, X_test
@@ -93,13 +89,13 @@ class DataForStatelessModel(DataLoader):
         return self.__data(stock_id, ndays=0)
 
     def ori_train_data(self):
-        return self.X_ori_train, self.y_ori_train
+        return self.X_train, self.y_train
 
     def ori_test_data(self):
-        return self.X_ori_test, self.y_ori_test
+        return self.X_test, self.y_test
 
     def inverse_transform_prediction(self, prediction):
-        prediction = (prediction + 1) * self.X_ori_test[:, 0]
+        prediction = self.sc.inverse_transform(prediction)
         return prediction
 
 
