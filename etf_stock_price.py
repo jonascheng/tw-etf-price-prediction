@@ -8,8 +8,8 @@ import subprocess
 
 from keras.models import load_model
 
-# from dataloader import DataForStatelessModelMoreFeatures as dl
-from dataloader import DataForCNNModel as dl
+from dataloader import DataForStatelessModelMoreFeatures as dl
+# from dataloader import DataForCNNModel as dl
 from util import get_model_name
 
 # ETF list
@@ -82,8 +82,8 @@ def predict():
 def train():
     for stock_id in stock_ids:
         print('Training stock {}...'.format(stock_id))
-        # cmd = 'python stateless_training_more_features.py {} {}'.format(stock_id, get_model_name(stock_id))
-        cmd = 'python cnn_training.py {} {}'.format(stock_id, get_model_name(stock_id))
+        cmd = 'python stateless_training_more_features.py {} {}'.format(stock_id, get_model_name(stock_id))
+        # cmd = 'python cnn_training.py {} {}'.format(stock_id, get_model_name(stock_id))
         fhandle = open('etf_stock_price_train_{}.txt'.format(stock_id), 'w')
         proc = subprocess.Popen(
             cmd,
