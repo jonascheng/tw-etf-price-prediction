@@ -23,9 +23,9 @@ class DataLoader(abc.ABC):
         # Importing the dataset
         filepath = '{}/tetfp.csv'.format(settings.DATASET_PATH)
         self.history = load_csv(filepath, stock_id)
-        if self.stock_id is not None:
-            filepath = '{}/weighted_stock_price_index.csv'.format(settings.DATASET_PATH)
-            self.weighted_history = load_weighted_csv(filepath, self.history)
+        # if self.stock_id is not None:
+        #     filepath = '{}/weighted_stock_price_index.csv'.format(settings.DATASET_PATH)
+        #     self.weighted_history = load_weighted_csv(filepath, self.history)
 
     def _set_look_back(self, stock_id):
         self.look_back = 60
