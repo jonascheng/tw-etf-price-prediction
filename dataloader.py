@@ -48,19 +48,33 @@ class DataForCNNModel(DataLoader):
         print('look_back {}, look_forward {}'.format(self.look_back, self.look_forward))
         # Taking 收盤價 開盤價 高低均價 成交量 as a predictor
         dataset_close = query_close_price(self.history, int(stock_id))
+        dataset_vol = query_volume(self.history, int(stock_id))
         # Feature Scaling for volume
         self.sc = MinMaxScaler(feature_range=(0, 1))
-        dataset_close = self.sc.fit_transform(dataset_close)
+        scaled_dataset_close = self.sc.fit_transform(dataset_close)
+        sc = MinMaxScaler(feature_range=(0, 1))
+        scaled_dataset_vol = sc.fit_transform(dataset_vol)
         # Transforming time series dataset into supervised dataset
-        self.supervised_close = series_to_supervised(dataset_close, n_in=self.look_back, n_out=self.look_forward)
+        self.supervised_ori_close = series_to_supervised(dataset_close, n_in=self.look_back, n_out=self.look_forward)
+        self.supervised_close = series_to_supervised(scaled_dataset_close, n_in=self.look_back, n_out=self.look_forward)
+        self.supervised_vol = np.array(series_to_supervised(scaled_dataset_vol, n_in=self.look_back, n_out=self.look_forward))
 
     def __data(self, stock_id, ndays):
         self.__prepare_data(stock_id)
 
         # Converting array of list to numpy array
+        ori_Xy = np.array(self.supervised_ori_close)
         Xy = np.array(self.supervised_close)
         # Spliting dataset into training and testing sets
+        self.X_ori_train, self.X_ori_test, self.y_ori_train, self.y_ori_test = train_test_split(ori_Xy, test_samples=ndays, num_forecasts=self.look_forward)
         X_train, X_test, y_train, y_test = train_test_split(Xy, test_samples=ndays, num_forecasts=self.look_forward)
+
+        # Adding more features
+        # feature_vol_train, feature_vol_test, _, _ = train_test_split(self.supervised_vol, test_samples=ndays, num_forecasts=5)
+
+        # X_train = np.append(X_train, feature_vol_train, axis=2)
+
+        # X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return X_train, y_train, X_test, y_test
 
@@ -76,9 +90,16 @@ class DataForCNNModel(DataLoader):
         self.__prepare_data(stock_id)
 
         # Converting array of list to numpy array
+        ori_Xy = np.array(self.supervised_ori_close)
         Xy = np.array(self.supervised_close)
         # Spliting dataset into predicting sets
+        self.X_ori_test = predict_split(ori_Xy)
         X_test = predict_split(Xy)
+
+        # Adding more features
+        # feature_vol_test = predict_split(self.supervised_vol)
+
+        # X_test = np.append(X_test, feature_vol_test, axis=2)
 
         return self.X_ori_test, X_test
 
@@ -89,10 +110,10 @@ class DataForCNNModel(DataLoader):
         return self.__data(stock_id, ndays=0)
 
     def ori_train_data(self):
-        return self.X_train, self.y_train
+        return self.X_ori_train, self.y_ori_train
 
     def ori_test_data(self):
-        return self.X_test, self.y_test
+        return self.X_ori_test, self.y_ori_test
 
     def inverse_transform_prediction(self, prediction):
         prediction = self.sc.inverse_transform(prediction)
@@ -118,7 +139,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # dataset_high = query_high_price(self.history, int(stock_id))
         # dataset_low = query_low_price(self.history, int(stock_id))
         # dataset_avg = query_avg_price(self.history, int(stock_id))
-        # dataset_vol = query_volume(self.history, int(stock_id))
+        dataset_vol = query_volume(self.history, int(stock_id))
         # dataset_weighted_close = query_weighted_close_price(self.history)
         # dataset_weighted_close_ma = moving_average(dataset_weighted_close, 5) # last 20
         # Transforming time series dataset into supervised dataset
@@ -128,7 +149,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # supervised_high = series_to_supervised(dataset_high, n_in=self.look_back, n_out=self.look_forward)
         # supervised_low = series_to_supervised(dataset_low, n_in=self.look_back, n_out=self.look_forward)
         # supervised_avg = series_to_supervised(dataset_avg, n_in=self.look_back, n_out=self.look_forward)
-        # supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
+        supervised_vol = series_to_supervised(dataset_vol, n_in=self.look_back, n_out=self.look_forward)
         # supervised_weighted_close_ma = series_to_supervised(dataset_weighted_close_ma, n_in=self.look_back, n_out=self.look_forward)
 
         # Normalize dataset if needed
@@ -139,11 +160,11 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # self.feature_high = normalize_windows(supervised_high)
         # self.feature_low = normalize_windows(supervised_low)
         # self.feature_avg = normalize_windows(supervised_avg)
-        # self.feature_vol = normalize_windows(supervised_vol)/100
+        self.feature_vol = normalize_windows(supervised_vol)/100
         # Feature Scaling for volume
-        # from sklearn.preprocessing import MinMaxScaler
-        # sc = MinMaxScaler(feature_range=(0, 1))
-        # self.feature_vol = sc.fit_transform(supervised_vol)
+        from sklearn.preprocessing import MinMaxScaler
+        sc = MinMaxScaler(feature_range=(0, 1))
+        self.feature_vol = sc.fit_transform(supervised_vol)
         # self.feature_weighted_close_ma = normalize_windows(supervised_weighted_close_ma)
 
     def __data(self, stock_id, ndays):
@@ -161,7 +182,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # feature_high_train, feature_high_test, _, _ = train_test_split(self.feature_high, test_samples=ndays, num_forecasts=5)
         # feature_low_train, feature_low_test, _, _ = train_test_split(self.feature_low, test_samples=ndays, num_forecasts=5)
         # feature_avg_train, feature_avg_test, _, _ = train_test_split(self.feature_avg, test_samples=ndays, num_forecasts=5)
-        # feature_vol_train, feature_vol_test, _, _ = train_test_split(self.feature_vol, test_samples=ndays, num_forecasts=5)
+        feature_vol_train, feature_vol_test, _, _ = train_test_split(self.feature_vol, test_samples=ndays, num_forecasts=5)
         # feature_weighted_close_ma_train, feature_weighted_close_ma_test, _, _ = train_test_split(self.feature_weighted_close_ma, test_samples=ndays, num_forecasts=5)
 
         # X_train = np.append(X_train, feature_close_ma_train, axis=2)
@@ -169,7 +190,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # X_train = np.append(X_train, feature_high_train, axis=2)
         # X_train = np.append(X_train, feature_low_train, axis=2)
         # X_train = np.append(X_train, feature_avg_train, axis=2)
-        # X_train = np.append(X_train, feature_vol_train, axis=2)
+        X_train = np.append(X_train, feature_vol_train, axis=2)
         # X_train = np.append(X_train, feature_weighted_close_ma_train, axis=2)
 
         # X_test = np.append(X_test, feature_close_ma_test, axis=2)
@@ -177,7 +198,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # X_test = np.append(X_test, feature_high_test, axis=2)
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
-        # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_vol_test, axis=2)
         # X_test = np.append(X_test, feature_weighted_close_ma_test, axis=2)
 
         return X_train, y_train, X_test, y_test
@@ -205,7 +226,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # feature_high_test = predict_split(self.feature_high)
         # feature_low_test = predict_split(self.feature_low)
         # feature_avg_test = predict_split(self.feature_avg)
-        # feature_vol_test = predict_split(self.feature_vol)
+        feature_vol_test = predict_split(self.feature_vol)
         # feature_weighted_close_ma_test = predict_split(self.feature_weighted_close_ma)
 
         # X_test = np.append(X_test, feature_close_ma_test, axis=2)
@@ -213,7 +234,7 @@ class DataForStatelessModelMoreFeatures(DataLoader):
         # X_test = np.append(X_test, feature_high_test, axis=2)
         # X_test = np.append(X_test, feature_low_test, axis=2)
         # X_test = np.append(X_test, feature_avg_test, axis=2)
-        # X_test = np.append(X_test, feature_vol_test, axis=2)
+        X_test = np.append(X_test, feature_vol_test, axis=2)
         # X_test = np.append(X_test, feature_weighted_close_ma_test, axis=2)
 
         return self.X_ori_test, X_test

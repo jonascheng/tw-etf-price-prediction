@@ -28,7 +28,8 @@ def data():
         stock_id = file.read()
     print('Loading dataset for {}'.format(stock_id))
     import dataloader
-    loader = dataloader.DataForCNNModel(int(stock_id))
+    # loader = dataloader.DataForCNNModel(int(stock_id))
+    loader = dataloader.DataForStatelessModelMoreFeatures(int(stock_id))
     if stock_id in ['00690', '00692', '00701', '00713']:
         ndays = 30
     else:
@@ -57,12 +58,12 @@ def model(X_train, y_train, X_test, y_test):
     from model import create_cnn_model
     from util import SavePredictionCallback
 
-    nb_epoch = 200
+    nb_epoch = {{choice([200, 400, 600, 800])}}
     batch_size = 128
-    layers = {{choice([1, 2])}}
-    output_dim = {{choice([128, 256])}}
+    layers = {{choice([2, 4, 6, 8])}}
+    output_dim = {{choice([32, 64, 128])}}
     optimizer = 'adam'
-    dropout = 0.2
+    dropout = {{choice([0.2, 0.4, 0.5])}}
 
     regressor = create_cnn_model(
         X_train,
@@ -82,7 +83,7 @@ def model(X_train, y_train, X_test, y_test):
     # Collecting callback list
     callbacks_list = [earlyStopping, savePrediction]
 
-    # Fitting the RNN to the Training set
+    # Fitting the CNN to the Training set
     real_price = y_test
     real_price = np.concatenate((real_price[0], np.array(real_price)[1:, -1]))
     regressor.fit(
@@ -122,10 +123,11 @@ def start_training(stock_id, trained_model):
         ndays = 60
     else:
         ndays = 120
-    plot_prefix = 'stateless_mf_etf_stock_{}'.format(stock_id)
+    plot_prefix = 'cnn_etf_stock_{}'.format(stock_id)
     for key, value in best_run.items():
         plot_prefix = '_'.join((plot_prefix, str(key), str(value)))
-    loader = dataloader.DataForCNNModel(int(stock_id))
+    # loader = dataloader.DataForCNNModel(int(stock_id))
+    loader = dataloader.DataForStatelessModelMoreFeatures(int(stock_id))
     visualize_model(loader, best_model, stock_id, ndays, plot_prefix)
 
 if __name__ == '__main__':

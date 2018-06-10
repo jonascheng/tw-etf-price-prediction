@@ -18,7 +18,7 @@ def create_cnn_model(X, y, layers, output_dim, optimizer, dropout=0):
         optimizer,
         dropout))
 
-    input_shape = (128, X.shape[1], X.shape[2])
+    input_shape = (X.shape[1], X.shape[2])
     output = y.shape[1]
     print('input_shape {}, output {}'.format(input_shape, output))
 
@@ -28,7 +28,7 @@ def create_cnn_model(X, y, layers, output_dim, optimizer, dropout=0):
     # Adding the first Convolution1D layer
     print('Adding the first Convolution1D layer')
     regressor.add(
-        Conv1D(filters=4,
+        Conv1D(filters=output_dim,
         kernel_size=5,
         input_shape=input_shape,
         activation='relu'))
@@ -36,20 +36,20 @@ def create_cnn_model(X, y, layers, output_dim, optimizer, dropout=0):
         regressor.add(Dropout(dropout))
 
     # Downsampling the output of convolution by 2X
-    print('Adding MaxPooling1D to downsample the output of convolution by 2X')
-    regressor.add(MaxPooling1D())
+    # print('Adding MaxPooling1D to downsample the output of convolution by 2X')
+    # regressor.add(MaxPooling1D())
 
     # Adding additional Convolution1D layers
     for i in range(layers - 1, 0, -1):
         print('Adding additional Convolution1D layers {}'.format(i))
         regressor.add(
-            Conv1D(filters=4,
+            Conv1D(filters=output_dim,
             kernel_size=5,
             activation='relu'))
         if dropout > 0:
             regressor.add(Dropout(dropout))
         # Downsampling the output of convolution by 2X
-        regressor.add(MaxPooling1D())
+        # regressor.add(MaxPooling1D())
 
     regressor.add(Flatten())
 
@@ -63,7 +63,8 @@ def create_cnn_model(X, y, layers, output_dim, optimizer, dropout=0):
     # Compiling the RNN
     regressor.compile(
         optimizer=optimizer,
-        metrics=[metrics.mae],
+        metrics=[metrics.mse],
+        # metrics=[metrics.mae],
         loss='mean_squared_error')
 
     print(regressor.summary())
